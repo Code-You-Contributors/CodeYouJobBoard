@@ -4,17 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Listings Page</title>
+    <title>Job Listings - CodeYou Job Board</title>
     <link rel="stylesheet" href="./style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&family=Share+Tech+Mono&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 
 <body>
     <aside>
-        <img src="../imgs/cy-logo-dstacked-color.png" alt="CodeYou Logo" class="logo">
+        <img src="imgs/cy-logo-dstacked-color.png" alt="CodeYou Logo" class="logo">
         <h1>CodeYou Job Board</h1>
         <p>Welcome to the CodeYou Job Board! Here you can find job listings.</p>
         <a href="/"><i class="fa-solid fa-house"></i> Home</a>
@@ -25,16 +24,15 @@
     <div class="container">
         <div class="header">
             <h1>Job Listings</h1>
-            <!-- <button id="fetchBtn">Fetch Sheet Data</button> -->
-            <div class="stats">
+            <div class="stats" id="jobStats">
                 <div class="stat-item">
-                    <strong>Number of jobs:</strong> 14
+                    <strong>Number of jobs:</strong> <span id="jobCount">0</span>
                 </div>
                 <div class="stat-item">
-                    <strong>Pay range:</strong> Min: $50,000 - Max: $150,000
+                    <strong>Pay range:</strong> <span id="payRange">Loading...</span>
                 </div>
                 <div class="stat-item">
-                    <strong>Skills:</strong> Python 24, C# 4, JavaScript 34, PHP 3, Excel 30
+                    <strong>Skills:</strong> <span id="topSkills">Loading...</span>
                 </div>
             </div>
         </div>
@@ -68,8 +66,11 @@
                     <label for="payRangeFilter">Pay Range</label>
                     <select class="filter-select" id="payRangeFilter">
                         <option value="">All</option>
-                        <option value="50000">Min: $50,000</option>
-                        <option value="150000">Max: $150,000</option>
+                        <option value="0-50000">$0 - $50,000</option>
+                        <option value="50000-75000">$50,000 - $75,000</option>
+                        <option value="75000-100000">$75,000 - $100,000</option>
+                        <option value="100000-150000">$100,000 - $150,000</option>
+                        <option value="150000+">$150,000+</option>
                     </select>
                 </div>
 
@@ -86,14 +87,12 @@
                 </div>
             </div>
 
-
             <div class="helpful-links-top">
                 <h3>Helpful Links:</h3>
                 <ul>
                     <li><a href="https://www.codeyou.com/career-resources" target="_blank">Career Resources</a></li>
                     <li><a href="https://www.codeyou.com/job-search-tips" target="_blank">Job Search Tips</a></li>
-                    <li><a href="https://www.codeyou.com/interview-preparation" target="_blank">Interview
-                            Preparation</a></li>
+                    <li><a href="https://www.codeyou.com/interview-preparation" target="_blank">Interview Preparation</a></li>
                 </ul>
             </div>
         </div>
@@ -105,17 +104,12 @@
             </table>
         </div>
 
-        <!-- API Test Result Section -->
-        <pre id="result"></pre>
+        <footer>
+            <p>&copy; 2025 CodeYou. All rights reserved.</p>
+        </footer>
     </div>
 
-
-    <footer>
-        <p>&copy; 2025 CodeYou. All rights reserved.</p>
-    </footer>
-    </div>
-    <script src="api.js"></script>
-    <script src="api-v2.js"></script>
+    <script src="job-data-manager.js"></script>
 </body>
 
 </html>

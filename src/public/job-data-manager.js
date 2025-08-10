@@ -6,13 +6,13 @@ const JobDataManager = {
     TIMESTAMP_KEY: 'codeyou_job_data_timestamp',
     CACHE_DURATION: 5 * 60 * 1000, // 5 minutes in milliseconds
     JOBS_PER_PAGE: 15, // Number of jobs to display per page
-    
+
     // Data storage
     fullData: null,
     allHeaders: [],
     allRows: [],
     filteredRows: [],
-    
+
     /**
      * Fetch job data from the google sheets API
      * @returns {Promise<Object>} The job data from Google Sheets
@@ -34,7 +34,7 @@ const JobDataManager = {
             return this.fetchFallbackData();
         }
     },
-    
+
     /**
      * Fetch fallback data from local data.json
      * @returns {Promise<Object|null>} The fallback data or null
@@ -44,7 +44,7 @@ const JobDataManager = {
             console.log('Attempting to load fallback data from data.json...');
             const response = await fetch('./data.json');
             const fallbackData = await response.json();
-            
+
             // Transform data.json format to match Google Sheets API format
             if (fallbackData.headers && fallbackData.values) {
                 console.log('Successfully loaded fallback data');
@@ -64,7 +64,7 @@ const JobDataManager = {
             return null;
         }
     },
-    
+
     /**
      * Store job data in sessionStorage with timestamp
      * @param {Object} data - The job data to store
@@ -79,7 +79,7 @@ const JobDataManager = {
             // SessionStorage might be full or disabled
         }
     },
-    
+
     /**
      * Retrieve job data from sessionStorage if still valid
      * @returns {Object|null} The cached job data or null if expired/missing
@@ -88,11 +88,11 @@ const JobDataManager = {
         try {
             const timestamp = sessionStorage.getItem(this.TIMESTAMP_KEY);
             const data = sessionStorage.getItem(this.STORAGE_KEY);
-            
+
             if (!timestamp || !data) {
                 return null;
             }
-            
+
             // Check if cache is still valid
             const age = Date.now() - parseInt(timestamp);
             if (age > this.CACHE_DURATION) {
@@ -100,7 +100,7 @@ const JobDataManager = {
                 this.clearCache();
                 return null;
             }
-            
+
             console.log(`Using cached data (${Math.round(age / 1000)} seconds old)`);
             return JSON.parse(data);
         } catch (error) {
@@ -108,7 +108,7 @@ const JobDataManager = {
             return null;
         }
     },
-    
+
     /**
      * Clear cached data
      */
@@ -117,7 +117,7 @@ const JobDataManager = {
         sessionStorage.removeItem(this.TIMESTAMP_KEY);
         console.log('Cache cleared');
     },
-    
+
     /**
      * Extract headers and data from Google Sheets API response
      * @param {Object} data - Raw API response
@@ -126,15 +126,15 @@ const JobDataManager = {
     extractHeadersAndData(data) {
         const values = data.values || [];
         const majorDimension = (data.majorDimension || 'ROWS').toUpperCase();
-        
+
         if (majorDimension === 'COLUMNS') {
             // Headers are the first item in each column
             const headers = values.map(col => col[0] || '');
-            
+
             // Data rows are everything after the first item
             const maxLength = Math.max(...values.map(col => col.length - 1));
             const rows = [];
-            
+
             for (let i = 1; i <= maxLength; i++) {
                 const row = [];
                 for (let j = 0; j < values.length; j++) {
@@ -142,7 +142,7 @@ const JobDataManager = {
                 }
                 rows.push(row);
             }
-            
+
             return { headers, rows };
         } else {
             // For ROWS format, first row is headers
@@ -151,14 +151,14 @@ const JobDataManager = {
             return { headers, rows };
         }
     },
-    
+
     /**
      * Initialize data fetching on homepage
      * This preloads data in the background
      */
     async initHomePage() {
         console.log('Homepage: Preloading job data in background...');
-        
+
         // Check if we already have valid cached data
         const cachedData = this.getCachedJobData();
         if (cachedData) {
@@ -166,7 +166,7 @@ const JobDataManager = {
             this.updateHomepageBadge(cachedData);
             return;
         }
-        
+
         // Fetch fresh data and cache it
         const data = await this.fetchJobData();
         if (data) {
@@ -174,7 +174,7 @@ const JobDataManager = {
             this.updateHomepageBadge(data);
         }
     },
-    
+
     /**
      * Update homepage with job count badge
      * @param {Object} data - Job data
@@ -184,13 +184,13 @@ const JobDataManager = {
             const processedData = this.extractHeadersAndData(data);
             const deactivateIndex = processedData.headers.indexOf('Deactivate?');
             let activeJobs = processedData.rows;
-            
+
             if (deactivateIndex !== -1) {
                 activeJobs = activeJobs.filter(row => row[deactivateIndex] !== 'TRUE');
             }
-            
+
             const jobCount = activeJobs.length;
-            
+
             // Add badge to Job Listings link
             const jobLink = document.querySelector('a[href="/listings.html"]');
             if (jobLink && jobCount > 0) {
@@ -206,19 +206,19 @@ const JobDataManager = {
             console.error('Error updating homepage badge:', error);
         }
     },
-    
+
     /**
      * Initialize listings page with job data
      */
     async initListingsPage() {
         console.log('Listings page: Loading job data...');
-        
+
         // Show loading state
         this.showLoadingState();
-        
+
         // Try to get cached data first
         let data = this.getCachedJobData();
-        
+
         // If no cached data, fetch it now
         if (!data) {
             console.log('No cached data found, fetching fresh data...');
@@ -227,7 +227,7 @@ const JobDataManager = {
                 this.storeJobData(data);
             }
         }
-        
+
         // Process and display the data
         if (data) {
             this.processAndDisplayData(data);
@@ -235,7 +235,7 @@ const JobDataManager = {
             this.showErrorMessage();
         }
     },
-    
+
     /**
      * Process and display all job data
      * @param {Object} data - Raw job data
@@ -246,40 +246,39 @@ const JobDataManager = {
         const processedData = this.extractHeadersAndData(data);
         this.allHeaders = processedData.headers;
         this.allRows = processedData.rows;
-        
+
         // Filter out deactivated jobs
         const deactivateIndex = this.allHeaders.indexOf('Deactivate?');
         if (deactivateIndex !== -1) {
             this.allRows = this.allRows.filter(row => row[deactivateIndex] !== 'TRUE');
             console.log(`Filtered out deactivated jobs. Active jobs: ${this.allRows.length}`);
         }
-        
+
         // Initialize filtered rows with all active rows
         this.filteredRows = [...this.allRows];
-        
+
         // Display data and setup features
         this.displayJobListings();
         this.updateStatistics();
         this.setupFiltersAndSearch();
     },
-    
+
     /**
      * Display job listings in the table
      */
     displayJobListings() {
         const table = document.getElementById('jobTable');
         if (!table) return;
-        
-        const thead = table.querySelector('thead');
-        const tbody = table.querySelector('tbody');
-        
-        // Clear existing content
+
+        const thead = table.querySelector('thead') || table.createTHead();
+        const tbody = table.querySelector('tbody') || table.createTBody();
+
         thead.innerHTML = '';
         tbody.innerHTML = '';
-        
+
         // Get rows to display (filtered rows, limited to JOBS_PER_PAGE)
         const rowsToDisplay = this.filteredRows.slice(0, this.JOBS_PER_PAGE);
-        
+
         // Create header row (exclude Deactivate column)
         const headerRow = document.createElement('tr');
         this.allHeaders.forEach(header => {
@@ -290,7 +289,7 @@ const JobDataManager = {
             }
         });
         thead.appendChild(headerRow);
-        
+
         // Create body rows
         rowsToDisplay.forEach(row => {
             const tr = document.createElement('tr');
@@ -298,7 +297,7 @@ const JobDataManager = {
                 if (header !== 'Deactivate?') {
                     const td = document.createElement('td');
                     const cellValue = row[index] || '';
-                    
+
                     // Apply special formatting based on column
                     this.formatTableCell(td, header, cellValue);
                     tr.appendChild(td);
@@ -306,10 +305,10 @@ const JobDataManager = {
             });
             tbody.appendChild(tr);
         });
-        
+
         console.log(`Displayed ${rowsToDisplay.length} of ${this.filteredRows.length} total active jobs`);
     },
-    
+
     /**
      * Format table cell based on column type
      * @param {HTMLElement} td - Table cell element
@@ -317,7 +316,7 @@ const JobDataManager = {
      * @param {string} value - Cell value
      */
     formatTableCell(td, header, value) {
-        switch(header) {
+        switch (header) {
             case 'Date':
             case 'Date Posted':
                 td.textContent = value;
@@ -354,7 +353,7 @@ const JobDataManager = {
                 td.textContent = value;
         }
     },
-    
+
     /**
      * Get pathway CSS class based on value
      * @param {string} pathway - Pathway value
@@ -368,7 +367,7 @@ const JobDataManager = {
         if (pathwayLower.includes('php')) return 'pathway-php';
         return 'pathway-default';
     },
-    
+
     /**
      * Update statistics on the page
      */
@@ -378,7 +377,7 @@ const JobDataManager = {
         if (jobCountEl) {
             jobCountEl.textContent = this.filteredRows.length;
         }
-        
+
         // Calculate and update pay range
         const salaryIndex = this.allHeaders.indexOf('Salary Range');
         if (salaryIndex !== -1) {
@@ -387,7 +386,7 @@ const JobDataManager = {
                 const match = salaryStr.match(/[\d,]+\.?\d*/);
                 return match ? parseFloat(match[0].replace(/,/g, '')) : 0;
             }).filter(sal => sal > 0);
-            
+
             if (salaries.length > 0) {
                 const minSalary = Math.min(...salaries);
                 const maxSalary = Math.max(...salaries);
@@ -397,7 +396,7 @@ const JobDataManager = {
                 }
             }
         }
-        
+
         // Update top skills
         const languageIndex = this.allHeaders.indexOf('Language');
         if (languageIndex !== -1) {
@@ -408,7 +407,7 @@ const JobDataManager = {
                     languages[lang] = (languages[lang] || 0) + 1;
                 }
             });
-            
+
             const topSkillsEl = document.getElementById('topSkills');
             if (topSkillsEl) {
                 const skillsText = Object.entries(languages)
@@ -420,7 +419,7 @@ const JobDataManager = {
             }
         }
     },
-    
+
     /**
      * Setup filters and search functionality
      */
@@ -431,18 +430,18 @@ const JobDataManager = {
         const locationFilter = document.getElementById('locationFilter');
         const payRangeFilter = document.getElementById('payRangeFilter');
         const skillsFilter = document.getElementById('skillsFilter');
-        
+
         if (searchInput) {
             searchInput.addEventListener('input', () => this.applyFilters());
         }
-        
+
         [pathwayFilter, locationFilter, payRangeFilter, skillsFilter].forEach(filter => {
             if (filter) {
                 filter.addEventListener('change', () => this.applyFilters());
             }
         });
     },
-    
+
     /**
      * Apply all active filters and search
      */
@@ -452,50 +451,50 @@ const JobDataManager = {
         const locationFilter = document.getElementById('locationFilter');
         const payRangeFilter = document.getElementById('payRangeFilter');
         const skillsFilter = document.getElementById('skillsFilter');
-        
+
         // Start with all active rows
         this.filteredRows = [...this.allRows];
-        
+
         // Apply search filter
         if (searchInput && searchInput.value.trim()) {
             const searchTerm = searchInput.value.toLowerCase();
             this.filteredRows = this.filteredRows.filter(row => {
-                return row.some(cell => 
+                return row.some(cell =>
                     cell.toString().toLowerCase().includes(searchTerm)
                 );
             });
         }
-        
+
         // Apply pathway filter
         if (pathwayFilter && pathwayFilter.value) {
             const pathwayIndex = this.allHeaders.indexOf('Pathway');
             if (pathwayIndex !== -1) {
-                this.filteredRows = this.filteredRows.filter(row => 
+                this.filteredRows = this.filteredRows.filter(row =>
                     row[pathwayIndex].toLowerCase().includes(pathwayFilter.value.toLowerCase())
                 );
             }
         }
-        
+
         // Apply location filter
         if (locationFilter && locationFilter.value) {
             const locationIndex = this.allHeaders.indexOf('Location');
             if (locationIndex !== -1) {
-                this.filteredRows = this.filteredRows.filter(row => 
+                this.filteredRows = this.filteredRows.filter(row =>
                     row[locationIndex].toLowerCase().includes(locationFilter.value.toLowerCase())
                 );
             }
         }
-        
+
         // Apply skills filter
         if (skillsFilter && skillsFilter.value) {
             const languageIndex = this.allHeaders.indexOf('Language');
             if (languageIndex !== -1) {
-                this.filteredRows = this.filteredRows.filter(row => 
+                this.filteredRows = this.filteredRows.filter(row =>
                     row[languageIndex].toLowerCase().includes(skillsFilter.value.toLowerCase())
                 );
             }
         }
-        
+
         // Apply pay range filter
         if (payRangeFilter && payRangeFilter.value) {
             const salaryIndex = this.allHeaders.indexOf('Salary Range');
@@ -505,7 +504,7 @@ const JobDataManager = {
                     const salaryStr = row[salaryIndex] || '';
                     const match = salaryStr.match(/[\d,]+\.?\d*/);
                     const salary = match ? parseFloat(match[0].replace(/,/g, '')) : 0;
-                    
+
                     if (payRangeFilter.value.includes('+')) {
                         return salary >= min;
                     } else if (max) {
@@ -515,30 +514,38 @@ const JobDataManager = {
                 });
             }
         }
-        
+
         // Refresh display
         this.displayJobListings();
         this.updateStatistics();
-        
+
         console.log(`Filters applied. Showing ${this.filteredRows.length} jobs.`);
     },
-    
+
     /**
      * Show loading state in the table
      */
     showLoadingState() {
         const table = document.getElementById('jobTable');
-        if (table) {
-            table.innerHTML = `
-                <tr>
-                    <td colspan="9" style="text-align: center; padding: 20px;">
-                        <i class="fa-solid fa-spinner fa-spin"></i> Loading job listings...
-                    </td>
-                </tr>
-            `;
-        }
-    },
-    
+        if (!table) return;
+
+        const thead = table.querySelector('thead') || table.createTHead();
+        const tbody = table.querySelector('tbody') || table.createTBody();
+
+        // Clear header while loading (optional)
+        thead.innerHTML = '';
+
+        // Show a single-row loading message in the body
+        tbody.innerHTML = `
+    <tr>
+      <td colspan="9" style="text-align: center; padding: 20px;">
+        <i class="fa-solid fa-spinner fa-spin"></i> Loading job listings...
+      </td>
+    </tr>
+  `;
+    }
+    ,
+
     /**
      * Show error message if data loading fails
      */
@@ -558,7 +565,7 @@ const JobDataManager = {
             `;
         }
     },
-    
+
     /**
      * Manual refresh function (can be called from console or button)
      */
@@ -572,7 +579,7 @@ const JobDataManager = {
 // Auto-initialize based on current page
 document.addEventListener('DOMContentLoaded', () => {
     const currentPage = window.location.pathname;
-    
+
     if (currentPage === '/' || currentPage.includes('index.html')) {
         // On homepage - preload data in background
         JobDataManager.initHomePage();
