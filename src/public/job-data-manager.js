@@ -4,8 +4,11 @@ const JobDataManager = {
     // Config handlers
     STORAGE_KEY: 'codeyou_job_data',
     TIMESTAMP_KEY: 'codeyou_job_data_timestamp',
-    CACHE_DURATION: 5 * 60 * 1000, // 5 minutes in milliseconds
-    JOBS_PER_PAGE: 15, // Number of jobs to display per page
+    // 5 minutes in milliseconds
+    CACHE_DURATION: 5 * 60 * 1000,
+    // Number of jobs to display per page
+    JOBS_PER_PAGE: 15,
+    // Auto-hide dates that are >= 30 days old
     AUTO_DEACTIVATE_DAYS: 30,
 
     // Data storage
@@ -155,7 +158,16 @@ const JobDataManager = {
 
     /** Parse the dates from the API into a Date object, following a U.S. date format of "08/10/2025" */
     parseUSDate (dateStr) {
-        // 
+        if (!dateStr) return null;
+
+        let d = new Date(dateStr);
+        if (!isNaN(d)) {
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+
+        // Creating a fallback for date formats that are not xx/xx/xxxx:
+        const m = String(dateStr).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
     },
 
     /**
