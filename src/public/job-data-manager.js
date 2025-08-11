@@ -6,6 +6,7 @@ const JobDataManager = {
     TIMESTAMP_KEY: 'codeyou_job_data_timestamp',
     CACHE_DURATION: 5 * 60 * 1000, // 5 minutes in milliseconds
     JOBS_PER_PAGE: 15, // Number of jobs to display per page
+    AUTO_DEACTIVATE_DAYS: 30,
 
     // Data storage
     fullData: null,
@@ -150,6 +151,11 @@ const JobDataManager = {
             const rows = values.slice(1);
             return { headers, rows };
         }
+    },
+
+    /** Parse the dates from the API into a Date object, following a U.S. date format of "08/10/2025" */
+    parseUSDate (dateStr) {
+        // 
     },
 
     /**
