@@ -5,7 +5,7 @@ const JobDataManager = {
     STORAGE_KEY: 'codeyou_job_data',
     TIMESTAMP_KEY: 'codeyou_job_data_timestamp',
     // 5 minutes in milliseconds
-    CACHE_DURATION: 5 * 60 * 1000,
+    CACHE_DURATION: 0.5 * 60 * 1000,
     // Number of jobs to display per page
     JOBS_PER_PAGE: 15,
     // Auto-hide dates that are >= 30 days old
@@ -166,8 +166,50 @@ const JobDataManager = {
             return d;
         }
 
-        // Creating a fallback for date formats that are not xx/xx/xxxx:
+        // Creating a fallback for date formats that are not mm/dd/yyyy:
         const m = String(dateStr).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+        if (!m) return null;
+        const mm = parseInt(m[1], 10) - 1;
+        const dd = parseInt(m[2], 10);
+        let yyyy = parseInt(m[3], 10);
+        if (yyyy < 100) yyyy += 2000;
+
+        d = new Date(yyyy, mm, dd);
+        d.setHours(0, 0, 0, 0);
+        return isNaN(d) ? null : d;
+    },
+
+    /** Mark “Deactivate?” TRUE if job date is >= N days ago */
+    applyAutoDeactivation() {
+        // Find the date column (support either "Date" or "Date Posted")
+        const dateIndex =
+            this.allHeaders.indexOf('Date') !== -1
+            ? this.allHeaders.indexOf('Date')
+            : this.allHeaders.indexOf('Date Posted');
+
+        if (dateIndex === -1) return; // no date column, nothing to do
+
+        // Ensure we have a Deactivate? column; add it if missing
+        let deactivateIndex = this.allHeaders.indexOf('Deactivate?');
+        if (deactivateIndex === -1) {
+            this.allHeaders.push('Deactivate?');
+            deactivateIndex = this.allHeaders.length - 1;
+            this.allRows.forEach(row => row[deactivateIndex] = 'FALSE');
+        }
+
+        // Compute cutoff: today minus N days, compare at midnight
+        const cutoff = new Date();
+        cutoff.setHours(0, 0, 0, 0);
+        cutoff.setDate(cutoff.getDate() - this.AUTO_DEACTIVATE_DAYS);
+
+        // If job date <= cutoff (i.e., 30+ days old), set 'Deactivate?' to TRUE
+        this.allRows = this.allRows.map(row => {
+            const d = this.parseUSDate(row[dateIndex]);
+            if (d && d <= cutoff) {
+            row[deactivateIndex] = 'TRUE';
+            }
+            return row;
+        });
     },
 
     /**
@@ -264,6 +306,9 @@ const JobDataManager = {
         const processedData = this.extractHeadersAndData(data);
         this.allHeaders = processedData.headers;
         this.allRows = processedData.rows;
+
+        // Apply the age-based deactivation function for our jobs >= 30 days old
+        this.applyAutoDeactivation();
 
         // Filter out deactivated jobs
         const deactivateIndex = this.allHeaders.indexOf('Deactivate?');
