@@ -23,7 +23,9 @@ app.get('/api/sheet', async (req, res) => {
   console.log('Using API Key:', API_KEY ? 'Found' : 'Missing');
   console.log('Using Spreadsheet ID:', spreadsheetId ? 'Found' : 'Missing');
 
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/JobBoard!A1:I196?majorDimension=COLUMNS&key=${API_KEY}`;
+  // Dynamic range for the Sheets API. Currently, A:I are the in-use columns
+  const range = encodeURIComponent(req.query.range || 'JobBoard!A:I');
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?majorDimension=COLUMNS&key=${API_KEY}`;
 
   try {
     const response = await axios.get(url);
@@ -32,7 +34,7 @@ app.get('/api/sheet', async (req, res) => {
     console.error('Google Sheets API error:', error.response ? error.response.data : error.message);
     res.status(500).json({ error: 'Error fetching Google Sheet' });
   }
-})
+});
 
 app.listen(PORT, () => {
   console.log('Server started at http://localhost:' + PORT);
