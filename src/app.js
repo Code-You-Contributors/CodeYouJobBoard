@@ -3,16 +3,18 @@ const path = require('path');
 const axios = require('axios');
 require('dotenv').config();
 
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// Serve the main page at:
+// Serve images from imgs folder
+app.use('/imgs', express.static(path.join(__dirname, '..', 'imgs')));
+
+// Serve the main page
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 // API endpoint for Google Sheets
@@ -23,7 +25,11 @@ app.get('/api/sheet', async (req, res) => {
   console.log('Using API Key:', API_KEY ? 'Found' : 'Missing');
   console.log('Using Spreadsheet ID:', spreadsheetId ? 'Found' : 'Missing');
 
-  // Dynamic range for the Sheets API. Currently, A:I are the in-use columns
+  if (!spreadsheetId || !API_KEY) {
+    console.error('Missing required environment variables');
+    return res.status(500).json({ error: 'Server misconfigured: missing Google Sheets credentials' });
+  }
+
   const range = encodeURIComponent(req.query.range || 'JobBoard!A:I');
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?majorDimension=COLUMNS&key=${API_KEY}`;
 
