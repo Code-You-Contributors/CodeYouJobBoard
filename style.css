@@ -364,7 +364,7 @@ helpful-links-top {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
-@media (max-width 1200px) {
+@media (max-width: 1200px) {
     .job-table {
         font-size: 0.8rem;
     }
