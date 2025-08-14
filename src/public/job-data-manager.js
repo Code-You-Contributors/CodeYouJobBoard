@@ -5,7 +5,7 @@ const JobDataManager = {
     STORAGE_KEY: 'codeyou_job_data',
     TIMESTAMP_KEY: 'codeyou_job_data_timestamp',
     // 5 minutes in milliseconds
-    CACHE_DURATION: 0.5 * 60 * 1000,
+    CACHE_DURATION: 5 * 60 * 1000,
     // Number of jobs to display per page
     JOBS_PER_PAGE: 600,
     // Auto-hide dates that are >= 30 days old
@@ -40,33 +40,9 @@ const JobDataManager = {
             return data;
         } catch (error) {
             console.error('Error fetching job data from API:', error);
-            return this.fetchFallbackData();
+            return null;
         }
     },
-
-    // async fetchFallbackData() {
-    //     try {
-    //         console.log('Attempting to load fallback data from data.json...');
-    //         const response = await fetch('./data.json');
-    //         const fallbackData = await response.json();
-
-    //         if (fallbackData.headers && fallbackData.values) {
-    //             console.log('Successfully loaded fallback data');
-    //             const transformedValues = fallbackData.values.map((col, index) => {
-    //                 return [fallbackData.headers[index], ...col];
-    //             });
-    //             return {
-    //                 range: fallbackData.range || "JobBoard!A:I",
-    //                 majorDimension: fallbackData.majorDimension || "COLUMNS",
-    //                 values: transformedValues
-    //             };
-    //         }
-    //         return fallbackData;
-    //     } catch (error) {
-    //         console.error('Failed to load fallback data:', error);
-    //         return null;
-    //     }
-    // },
 
     storeJobData(data) {
         try {
