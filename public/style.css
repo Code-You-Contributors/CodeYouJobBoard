@@ -341,6 +341,13 @@ footer {
     margin-left: 15px;
 }
 
+.pagination-ellipsis {
+    padding: 0 10px;
+    color: var(--bg-3);
+    font-weight: 600;
+    user-select: none;
+}
+
 @media (max-width: 768px) {
     .pagination-controls {
         flex-direction: column;

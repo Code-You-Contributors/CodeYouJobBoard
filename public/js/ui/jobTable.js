@@ -52,7 +52,7 @@ const JobTable = {
         // Render the pagination controls:
         this.renderPagination(rows.length);
 
-        console.log(`Displayed ${rowsToDisplay.length} of ${rows.length} total jobs`);
+        console.log(`Page ${this.currentPage}/${this.totalPages}: Showing jobs ${startIndex + 1}-${Math.min(endIndex, rows.length)} of ${rows.length} total`);
     },
 
     renderPagination(totalRows) {
@@ -72,11 +72,11 @@ const JobTable = {
 
         if (this.totalPages <= 1) return;
 
+        // Back button
         const backBtn = document.createElement('button');
         backBtn.className = 'pagination-btn pagination-nav';
         backBtn.disabled = this.currentPage === 1;
 
-        // Back Buttons
         const backIcon = document.createElement('i');
         backIcon.className = 'fa-solid fa-chevron-left';
         backBtn.appendChild(backIcon);
@@ -85,23 +85,78 @@ const JobTable = {
         backBtn.onclick = () => JobController.goToPage(this.currentPage - 1);
         paginationContainer.appendChild(backBtn);
 
-        // Page number buttons
+        // Page number buttons with sliding window
         const pageButtonsContainer = document.createElement('div');
         pageButtonsContainer.className = 'pagination-numbers';
-
-        for (let i = 1; i <= this.totalPages; i++) {
+        
+        // Configuration for sliding window
+        const maxVisible = 7; // Maximum number of page buttons to show
+        const sideButtons = 2; // Number of buttons on each side of current page
+        
+        // Helper function to create page button
+        const createPageButton = (pageNum) => {
             const pageBtn = document.createElement('button');
             pageBtn.className = 'pagination-btn pagination-number';
-            pageBtn.appendChild(document.createTextNode(i.toString()));
-
-            if (i === this.currentPage) {
+            pageBtn.appendChild(document.createTextNode(pageNum.toString()));
+            
+            if (pageNum === this.currentPage) {
                 pageBtn.classList.add('active');
             }
+            
+            pageBtn.onclick = () => JobController.goToPage(pageNum);
+            return pageBtn;
+        };
+        
+        // Helper function to create ellipsis
+        const createEllipsis = () => {
+            const ellipsis = document.createElement('span');
+            ellipsis.className = 'pagination-ellipsis';
+            ellipsis.appendChild(document.createTextNode('...'));
+            return ellipsis;
+        };
 
-            pageBtn.onclick = () => JobController.goToPage(i);
-            pageButtonsContainer.appendChild(pageBtn);
+        if (this.totalPages <= maxVisible) {
+            // Show all pages if total is less than max
+            for (let i = 1; i <= this.totalPages; i++) {
+                pageButtonsContainer.appendChild(createPageButton(i));
+            }
+        } else {
+            // Always show first page
+            pageButtonsContainer.appendChild(createPageButton(1));
+            
+            // Calculate range around current page
+            let startPage = Math.max(2, this.currentPage - sideButtons);
+            let endPage = Math.min(this.totalPages - 1, this.currentPage + sideButtons);
+            
+            // Adjust if at the beginning
+            if (this.currentPage <= sideButtons + 2) {
+                endPage = Math.min(maxVisible - 2, this.totalPages - 1);
+            }
+            
+            // Adjust if at the end
+            if (this.currentPage >= this.totalPages - sideButtons - 1) {
+                startPage = Math.max(2, this.totalPages - maxVisible + 3);
+            }
+            
+            // Add ellipsis after first page if needed
+            if (startPage > 2) {
+                pageButtonsContainer.appendChild(createEllipsis());
+            }
+            
+            // Add page buttons in range
+            for (let i = startPage; i <= endPage; i++) {
+                pageButtonsContainer.appendChild(createPageButton(i));
+            }
+            
+            // Add ellipsis before last page if needed
+            if (endPage < this.totalPages - 1) {
+                pageButtonsContainer.appendChild(createEllipsis());
+            }
+            
+            // Always show last page
+            pageButtonsContainer.appendChild(createPageButton(this.totalPages));
         }
-
+        
         paginationContainer.appendChild(pageButtonsContainer);
 
         // Next button (next page)
