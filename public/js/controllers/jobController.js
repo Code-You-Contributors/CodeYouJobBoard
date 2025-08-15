@@ -2,10 +2,11 @@ const JobController = {
     allHeaders: [],
     allRows: [],
     filteredRows: [],
+    currentPage: 1,
 
     async init() {
         const currentPage = window.location.pathname;
-
+        
         if (currentPage === '/' || currentPage.includes('index.html')) {
             await this.initHomePage();
         } else if (currentPage.includes('listings.html')) {
@@ -41,7 +42,7 @@ const JobController = {
     async initListingsPage() {
         console.log('Listings page: Loading job data...');
         JobTable.showLoading();
-
+        
         let data = CacheManager.get();
         if (!data) {
             console.log('No cached data found, fetching fresh data...');
@@ -62,12 +63,13 @@ const JobController = {
         const processedData = DataParser.extractHeadersAndData(data);
         this.allHeaders = processedData.headers;
         this.allRows = DataParser.filterDeactivated(processedData.rows, this.allHeaders);
-
+        
         console.log(`Filtered out deactivated jobs. Active jobs: ${this.allRows.length}`);
-
+        
         this.filteredRows = [...this.allRows];
-
-        JobTable.render(this.allHeaders, this.filteredRows);
+        this.currentPage = 1;
+        
+        JobTable.render(this.allHeaders, this.filteredRows, this.currentPage);
         Statistics.update(this.filteredRows, this.allHeaders);
         this.setupFiltersAndSearch();
     },
@@ -120,9 +122,22 @@ const JobController = {
         }
 
         this.filteredRows = rows;
-        JobTable.render(this.allHeaders, this.filteredRows);
+        this.currentPage = 1; // Reset to page 1 when filters change
+        
+        JobTable.render(this.allHeaders, this.filteredRows, this.currentPage);
         Statistics.update(this.filteredRows, this.allHeaders);
         console.log(`Filters applied. Showing ${this.filteredRows.length} jobs.`);
+    },
+
+    goToPage(page) {
+        this.currentPage = page;
+        JobTable.render(this.allHeaders, this.filteredRows, this.currentPage);
+        
+        // Scroll to top of table
+        const tableContainer = document.querySelector('.table-container');
+        if (tableContainer) {
+            tableContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     },
 
     async refreshData() {

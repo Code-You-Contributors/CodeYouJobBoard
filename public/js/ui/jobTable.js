@@ -9,7 +9,15 @@ const JobTable = {
 
         // Pagination: calculate num pages
         this.totalPages = Math.ceil(rows.length / this.JOBS_PER_PAGE);
+        this.currentPage = Math.min(page, this.totalPages);
+        this.currentPage = Math.max(1, this.currentPage);
 
+        // Dynamic buttons: Crafting a range, with a beginning / end index
+        const startIndex = (this.currentPage - 1) * this.JOBS_PER_PAGE;
+        const endIndex = startIndex + this.JOBS_PER_PAGE;
+        const rowsToDisplay = rows.slice(startIndex, endIndex);
+
+        // Table rendering for the data
         const thead = table.querySelector('thead') || table.createTHead();
         const tbody = table.querySelector('tbody') || table.createTBody();
 
@@ -28,8 +36,7 @@ const JobTable = {
 
         /** Creates a new array containing only
          * the first 15 rows from the rows array
-         */
-        const rowsToDisplay = rows.slice(0, this.JOBS_PER_PAGE);
+        */
         rowsToDisplay.forEach(row => {
             const tr = document.createElement('tr');
             headers.forEach((header, index) => {
@@ -42,7 +49,81 @@ const JobTable = {
             tbody.appendChild(tr);
         });
 
+        // Render the pagination controls:
+        this.renderPagination(rows.length);
+
         console.log(`Displayed ${rowsToDisplay.length} of ${rows.length} total jobs`);
+    },
+
+    renderPagination(totalRows) {
+        let paginationContainer = document.getElementById('paginationControls');
+
+        if (!paginationContainer) {
+            const tableContainer = document.querySelector('.table-container');
+            if (!tableContainer) return;
+
+            paginationContainer = document.createElement('div');
+            paginationContainer.id = 'paginationControls';
+            paginationContainer.className = 'pagination-controls';
+            tableContainer.appendChild(paginationContainer);
+        }
+
+        paginationContainer.innerHTML = '';
+
+        if (this.totalPages <= 1) return;
+
+        const backBtn = document.createElement('button');
+        backBtn.className = 'pagination-btn pagination-nav';
+        backBtn.disabled = this.currentPage === 1;
+
+        // Back Buttons
+        const backIcon = document.createElement('i');
+        backIcon.className = 'fa-solid fa-chevron-left';
+        backBtn.appendChild(backIcon);
+        backBtn.appendChild(document.createTextNode(' Back'));
+
+        backBtn.onclick = () => JobController.goToPage(this.currentPage - 1);
+        paginationContainer.appendChild(backBtn);
+
+        // Page number buttons
+        const pageButtonsContainer = document.createElement('div');
+        pageButtonsContainer.className = 'pagination-numbers';
+
+        for (let i = 1; i <= this.totalPages; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = 'pagination-btn pagination-number';
+            pageBtn.appendChild(document.createTextNode(i.toString()));
+
+            if (i === this.currentPage) {
+                pageBtn.classList.add('active');
+            }
+
+            pageBtn.onclick = () => JobController.goToPage(i);
+            pageButtonsContainer.appendChild(pageBtn);
+        }
+
+        paginationContainer.appendChild(pageButtonsContainer);
+
+        // Next button (next page)
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'pagination-btn pagination-nav';
+        nextBtn.disabled = this.currentPage === this.totalPages;
+
+        nextBtn.appendChild(document.createTextNode('Next '));
+        const nextIcon = document.createElement('i');
+        nextIcon.className = 'fa-solid fa-chevron-right';
+        nextBtn.appendChild(nextIcon);
+
+        nextBtn.onclick = () => JobController.goToPage(this.currentPage + 1);
+        paginationContainer.appendChild(nextBtn);
+
+        // Page info (which page you're on / can click/skip to...)
+        const pageInfo = document.createElement('span');
+        pageInfo.className = 'pagination-info';
+        pageInfo.appendChild(
+            document.createTextNode(`Page ${this.currentPage} of ${this.totalPages} (${totalRows} total jobs)`)
+        );
+        paginationContainer.appendChild(pageInfo);
     },
 
     formatCell(td, header, value) {
@@ -92,7 +173,7 @@ const JobTable = {
     showLoading() {
         const table = document.getElementById('jobTable');
         if (!table) return;
-        
+
         const tbody = table.querySelector('tbody') || table.createTBody();
         tbody.innerHTML = `
             <tr>
@@ -106,7 +187,7 @@ const JobTable = {
     showError() {
         const table = document.getElementById('jobTable');
         if (!table) return;
-        
+
         table.innerHTML = `
             <tr>
                 <td colspan="9" style="text-align: center; padding: 40px;">
