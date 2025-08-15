@@ -1,9 +1,14 @@
 const JobTable = {
     JOBS_PER_PAGE: 15,
+    currentPage: 1,
+    totalPages: 1,
 
-    render(headers, rows) {
+    render(headers, rows, page = 1) {
         const table = document.getElementById('jobTable');
         if (!table) return "Table not found!";
+
+        // Pagination: calculate num pages
+        this.totalPages = Math.ceil(rows.length / this.JOBS_PER_PAGE);
 
         const thead = table.querySelector('thead') || table.createTHead();
         const tbody = table.querySelector('tbody') || table.createTBody();
