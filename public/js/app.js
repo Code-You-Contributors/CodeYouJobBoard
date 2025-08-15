@@ -2,3 +2,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     JobController.init();
 });
+
+// Makes `JobController` available globally
+document.addEventListener('DOMContentLoaded', () => {
+    JobController.init();
+});
