@@ -379,7 +379,7 @@ footer {
 
 .pathway-tag {
     display: inline-block;
-    color: var(--white);
+    color: var(--b-blue);
     padding: 5px 10px;
     border-radius: 20px;
     font-size: 0.8rem;
