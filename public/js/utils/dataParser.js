@@ -23,6 +23,8 @@ const DataParser = {
         }
     },
 
+    // Used to check google sheets api data boolean status...
+    // Specifically, we use it in `filterDeactivated` for the 'Deactivate?' header
     isTrue(val) {
         if (val === true) return true;
         if (typeof val === 'string') {

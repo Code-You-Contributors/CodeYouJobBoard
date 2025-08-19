@@ -9,6 +9,8 @@ const JobController = {
         
         if (currentPage === '/' || currentPage.includes('index.html')) {
             await this.initHomePage();
+            // Use 'else if', not 'else' here, since we want to only run `listings` 
+            // when the path actually targets `listings.html`.
         } else if (currentPage.includes('listings.html')) {
             await this.initListingsPage();
         }

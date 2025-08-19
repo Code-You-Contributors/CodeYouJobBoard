@@ -1,4 +1,11 @@
 const Statistics = {
+    /**
+     * Updates key job statistics on the page.
+     * @param {Array} rows - Array of job data rows retrieved from the API.
+     * @param {Array} headers - Array of column headers corresponding to each row.
+     * 
+     * Displays total job count, salary range, and top skills based on parsed job data.
+     */
     update(rows, headers) {
         // `jobCountEl` = section for displaying num jobs retrieved from API:
         const jobCountEl = document.getElementById('jobCount');
@@ -10,6 +17,14 @@ const Statistics = {
         this.updateTopSkills(rows, headers);
     },
 
+    /**
+     * Calculates and displays the minimum and maximum salary range.
+     * @param {Array} rows - Array of job data rows.
+     * @param {Array} headers - Array of column headers.
+     * 
+     * Extracts numeric values from salary strings, filters out invalid entries,
+     * and updates the `#payRange` element with a formatted salary range.
+    */
     updateSalaryRange(rows, headers) {
         const salaryIndex = headers.indexOf('Salary Range');
         if (salaryIndex === -1) return;
@@ -32,6 +47,14 @@ const Statistics = {
         }
     },
 
+    /**
+     * Identifies and displays the top 5 most common skills or languages.
+     * @param {Array} rows - Array of job data rows.
+     * @param {Array} headers - Array of column headers.
+     * 
+     * Tallies frequency of each language/skill, sorts by popularity,
+     * and updates the `#topSkills` element with a formatted list.
+    */
     updateTopSkills(rows, headers) {
         const languageIndex = headers.indexOf('Language');
         if (languageIndex === -1) return;
@@ -55,9 +78,19 @@ const Statistics = {
         }
     },
 
+    /**
+     * Adds or updates a badge showing the number of active jobs on the homepage link.
+     * @param {number} activeJobCount - Total number of active job listings.
+     * 
+     * If the badge exists, we update its count. Otherwise, appends a new badge element.
+    */
     updateHomepageBadge(activeJobCount) {
+        console.log('currJobCount' + activeJobCount);
         const jobLink = document.querySelector('a[href="/listings.html"]');
         if (jobLink && activeJobCount >= 0) {
+            if(!jobLink) {
+                console.log('no a tag');
+            }
             const existingBadge = jobLink.querySelector('.job-count-badge');
             if (existingBadge) {
                 existingBadge.textContent = activeJobCount;
