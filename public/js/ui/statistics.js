@@ -85,18 +85,15 @@ const Statistics = {
      * If the badge exists, we update its count. Otherwise, appends a new badge element.
     */
     updateHomepageBadge(activeJobCount) {
-        console.log('currJobCount' + activeJobCount);
-        const jobLink = document.querySelector('a[href="/listings.html"]');
-        if (jobLink && activeJobCount >= 0) {
-            if(!jobLink) {
-                console.log('no a tag');
-            }
-            const existingBadge = jobLink.querySelector('.job-count-badge');
-            if (existingBadge) {
-                existingBadge.textContent = activeJobCount;
-            } else {
-                jobLink.innerHTML += ` <span class="job-count-badge" style="background: var(--b-orange); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8em;">${activeJobCount}</span>`;
-            }
+    console.log('currJobCount ' + activeJobCount);
+    const jobLink = document.querySelector('a[href="listings.html"]'); // Removed the '/' because it's the ref. issue. 
+    if (jobLink && activeJobCount >= 0) {
+        const existingBadge = jobLink.querySelector('.job-count-badge');
+        if (existingBadge) {
+            existingBadge.textContent = activeJobCount;
+        } else {
+            jobLink.innerHTML += ` <span class="job-count-badge" style="background: var(--b-orange); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8em;">${activeJobCount}</span>`;
         }
     }
+}
 };
