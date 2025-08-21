@@ -289,16 +289,25 @@ footer {
     padding: 20px;
     background: var(--white);
     border-radius: 15px;
-    flex-wrap: wrap;
+    min-height: 60px; /* Fixed minimum height */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* Remove flex-wrap to prevent wrapping on desktop */
+    flex-wrap: nowrap;
+    overflow-x: auto; /* Allow horizontal scroll on very small screens */
 }
 
 .pagination-numbers {
     display: flex;
-    gap: 8px;
+    gap: 6px;
+    align-items: center;
+    /* Fixed width container to prevent layout shifts */
+    min-width: 300px;
+    justify-content: center;
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
 .pagination-btn {
-    padding: 8px 16px;
+    padding: 8px 12px;
     border: 2px solid var(--b-blue);
     background: var(--white);
     color: var(--b-blue);
@@ -307,6 +316,19 @@ footer {
     font-weight: 600;
     transition: all 0.3s ease;
     font-size: 0.9rem;
+    /* Fixed dimensions for consistency */
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Prevent shrinking */
+    white-space: nowrap;
+}
+
+.pagination-btn.pagination-nav {
+    min-width: 80px; /* Consistent width for nav buttons */
+    padding: 8px 16px;
 }
 
 .pagination-btn:hover:not(:disabled) {
@@ -321,42 +343,112 @@ footer {
     cursor: not-allowed;
     border-color: var(--bg-3);
     color: var(--bg-3);
+    transform: none; /* Prevent transform on disabled buttons */
 }
 
 .pagination-btn.active {
     background: linear-gradient(135deg, var(--b-blue), var(--b-torquise));
     color: var(--white);
     border-color: var(--b-blue);
+    box-shadow: 0 2px 8px rgba(16, 99, 150, 0.3);
 }
 
 .pagination-nav {
     display: flex;
     align-items: center;
     gap: 5px;
+    flex-shrink: 0;
 }
 
 .pagination-info {
     color: var(--bg-2);
     font-size: 0.9rem;
-    margin-left: 15px;
+    font-weight: 500;
+    white-space: nowrap; /* Prevent text wrapping */
+    flex-shrink: 0;
+    min-width: 150px; /* Consistent width for info */
+    text-align: center;
 }
 
 .pagination-ellipsis {
-    padding: 0 10px;
+    padding: 0 8px;
     color: var(--bg-3);
     font-weight: 600;
     user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 40px;
 }
 
+/* Enhanced responsive design for the pagination / page buttons */
 @media (max-width: 768px) {
     .pagination-controls {
         flex-direction: column;
-        gap: 10px;
+        gap: 15px;
+        padding: 15px;
+        min-height: auto;
+        overflow-x: visible;
     }
-
+    
+    .pagination-numbers {
+        min-width: unset;
+        max-width: 100%;
+        overflow-x: auto;
+        padding: 5px 0;
+        /* Subtle scroll indicator */
+        scrollbar-width: thin;
+        scrollbar-color: var(--b-blue) var(--bg-4);
+    }
+    
+    .pagination-numbers::-webkit-scrollbar {
+        height: 4px;
+    }
+    
+    .pagination-numbers::-webkit-scrollbar-track {
+        background: var(--bg-4);
+        border-radius: 2px;
+    }
+    
+    .pagination-numbers::-webkit-scrollbar-thumb {
+        background: var(--b-blue);
+        border-radius: 2px;
+    }
+    
+    .pagination-btn {
+        min-width: 36px;
+        height: 36px;
+        font-size: 0.8rem;
+    }
+    
+    .pagination-btn.pagination-nav {
+        min-width: 70px;
+    }
+    
     .pagination-info {
-        margin-left: 0;
-        margin-top: 10px;
+        margin: 0;
+        min-width: unset;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .pagination-controls {
+        padding: 10px;
+        margin: 20px 0;
+    }
+    
+    .pagination-btn {
+        min-width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+    
+    .pagination-btn.pagination-nav {
+        min-width: 60px;
+        font-size: 0.75rem;
     }
 }
 
