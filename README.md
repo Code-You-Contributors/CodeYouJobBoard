@@ -61,8 +61,22 @@ code-you-job-board/
 │  └─ app.js                # Express server & API endpoints
 ├─ public/
 │  ├─ index.html            # Main HTML file
-│  ├─ styles.css            # Stylesheets
-│  └─ script.js             # Client-side JavaScript
+│  ├─ listings.html         # Job listings page
+│  ├─ style.css             # Stylesheets
+│  └─ js/                   # Client-side JavaScript modules
+│     ├─ api/
+│     │  └─ jobApi.js       # API communication layer
+│     ├─ cache/
+│     │  └─ cacheManager.js # Session storage management
+│     ├─ controllers/
+│     │  └─ jobController.js # Main application controller
+│     ├─ filters/
+│     │  └─ jobFilters.js   # Data filtering logic
+│     ├─ ui/
+│     │  ├─ jobTable.js     # Table rendering & pagination
+│     │  └─ statistics.js   # Statistics display
+│     └─ utils/
+│        └─ dataParser.js   # Data transformation utilities
 ├─ imgs/                    # Static image assets
 ├─ .env                     # Environment variables (not in repo)
 ├─ package.json             # Node.js dependencies & scripts
