@@ -120,6 +120,13 @@ function parseCSVLine(line) {
 }
 
 
+function replaceUnderscoresInRow(row) {
+    const newRow = [...row];
+    newRow[7] = newRow[7].replaceAll("_", " ");
+    return newRow;
+}
+
+
 document.addEventListener("DOMContentLoaded", function () {
     const sheetUrl = "https://docs.google.com/spreadsheets/d/1OHIJj0D0Q-2lHgSL184vxBaxhIdSYqzso3UJvcRUflo/gviz/tq?tqx=out:csv"
     const tableBody = document.getElementById("jobTableBody");
@@ -133,6 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 .map(parseCSVLine)
                 .filter(row => row.length)
                 .map(row => row.filter(cell => cell !== ""))
+                .map(replaceUnderscoresInRow)
                 .filter(row => row[8].trim().toLowerCase() === "false");
             rows.shift();
 
