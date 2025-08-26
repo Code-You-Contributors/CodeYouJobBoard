@@ -121,7 +121,7 @@ function parseCSVLine(line) {
 
 
 document.addEventListener("DOMContentLoaded", function () {
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/1-LMX_seYzsrZf7XMcsKLqgE5CtX1aAaulRolKSlzt7g/gviz/tq?tqx=out:csv";
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/1OHIJj0D0Q-2lHgSL184vxBaxhIdSYqzso3UJvcRUflo/gviz/tq?tqx=out:csv"
     const tableBody = document.getElementById("jobTableBody");
 
     fetch(sheetUrl)
@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 row.forEach((cell, index) => {
                     const td = document.createElement("td");
-                    if (index === 8 && cell.trim()) { 
+                    if (index === 8 && cell.trim()) {
                         const link = document.createElement("a");
                         link.href = cell.trim();
                         link.textContent = cell.trim();
