@@ -137,6 +137,13 @@
     const sheetUrl =
       "https://docs.google.com/spreadsheets/d/1OHIJj0D0Q-2lHgSL184vxBaxhIdSYqzso3UJvcRUflo/gviz/tq?tqx=out:csv";
     tableBody = document.getElementById("jobTableBody");
+    const searchInput = document.getElementById("searchInput");
+    searchInput.addEventListener("input", () => {
+      currentPage = 1;
+      filteredJobs = filterJobs(activeJobs, searchInput);
+      renderTable(tableBody);
+      populateJobCount(filteredJobs);
+    });
 
     fetch(sheetUrl)
       .then((response) => response.text())
@@ -159,6 +166,32 @@
       })
       .catch((error) => console.error("Error loading sheet:", error));
   });
+
+  function filterJobs(jobs, searchInput) {
+    let result = [...jobs];
+
+    result = getSearchResults(result, searchInput);
+
+    return result;
+  }
+
+  function getSearchResults(itemsToSearch, searchInputField) {
+    const searchTerm = searchInputField.value.trim().toLowerCase();
+
+    const result = itemsToSearch.filter((item) => {
+      const employer = item[1].trim().toLowerCase();
+      const jobTitle = item[2].trim().toLowerCase();
+      const skills = item[4].trim().toLowerCase();
+
+      return (
+        employer.includes(searchTerm) ||
+        jobTitle.includes(searchTerm) ||
+        skills.includes(searchTerm)
+      );
+    });
+
+    return result;
+  }
 
   function parseCSVLine(line) {
     if (!line.trim()) return []; // skip blank lines
@@ -195,12 +228,12 @@
     const controlsElement = document.getElementById("pagination-controls");
     jobsToDisplay = paginate(filteredJobs, currentPage, perPage);
 
-    jobsToDisplay.forEach((row) => {
-      if (row.length < 9) return;
+    jobsToDisplay.forEach((job) => {
+      if (job.length < 9) return;
 
       const tr = document.createElement("tr");
 
-      row.forEach((cell, index) => {
+      job.forEach((cell, index) => {
         const td = document.createElement("td");
         if (index === 8 && cell.trim().toLowerCase() === "false") {
           tr.appendChild(td);
