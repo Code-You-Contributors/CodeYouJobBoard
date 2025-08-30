@@ -125,12 +125,12 @@
 </html>
 
 <script>
-  let activeJobs;
+  let activeJobs = [];
   let perPage = 10;
   let totalPages = 0;
   let currentPage = 1;
 
-  document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", async () => {
     const sheetUrl =
       "https://docs.google.com/spreadsheets/d/1OHIJj0D0Q-2lHgSL184vxBaxhIdSYqzso3UJvcRUflo/gviz/tq?tqx=out:csv";
 
@@ -139,26 +139,39 @@
       applyFilters(activeJobs);
     });
 
-    fetch(sheetUrl)
-      .then((response) => response.text())
-      .then((csv) => {
-        const rows = csv
-          .trim()
-          .split(/\r?\n/)
-          .map(parseCSVLine)
-          .filter((row) => row.length)
-          .map((row) => row.filter((cell) => cell !== ""))
-          .map(replaceUnderscoresInRow)
-          .filter((row) => row[8].trim().toLowerCase() === "false");
-        // rows.shift();
-        activeJobs = [...rows];
-
-        populateJobCount(activeJobs);
-
-        renderTable(activeJobs);
-      })
-      .catch((error) => console.error("Error loading sheet:", error));
+    try {
+      const jobData = await fetchJobData(sheetUrl);
+      activeJobs = parseJobData(jobData);
+      populateJobCount(activeJobs);
+      renderTable(activeJobs);
+    } catch (error) {
+      console.error("Error loading sheet:", error);
+    }
   });
+
+  async function fetchJobData(url) {
+    let result;
+
+    const response = await fetch(url);
+    result = await response.text();
+
+    return result;
+  }
+
+  function parseJobData(data) {
+    let result;
+
+    result = data
+      .trim()
+      .split(/\r?\n/)
+      .map(parseCSVLine)
+      .filter((row) => row.length)
+      .map((row) => row.filter((cell) => cell !== ""))
+      .map(replaceUnderscoresInRow)
+      .filter((row) => row[8].trim().toLowerCase() === "false");
+
+    return result;
+  }
 
   function applyFilters(items) {
     currentPage = 1;
@@ -225,13 +238,6 @@
     document.getElementById("job-count").innerText = jobList.length;
   }
 
-  function paginate(items, currentPage = 1, perPage = 20) {
-    totalPages = Math.ceil(items.length / perPage);
-    const start = (currentPage - 1) * perPage;
-    const end = start + perPage;
-    return items.slice(start, end);
-  }
-
   function renderTable(tableItems) {
     const tableBody = document.getElementById("jobTableBody");
     const itemsToDisplay = paginate(tableItems, currentPage, perPage);
@@ -262,6 +268,13 @@
       tableBody.appendChild(tr);
     });
     renderPaginationControls(tableItems);
+  }
+
+  function paginate(items, currentPage = 1, perPage = 20) {
+    totalPages = Math.ceil(items.length / perPage);
+    const start = (currentPage - 1) * perPage;
+    const end = start + perPage;
+    return items.slice(start, end);
   }
 
   function renderPaginationControls(tableItems) {
