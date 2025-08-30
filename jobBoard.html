@@ -126,23 +126,17 @@
 
 <script>
   let activeJobs;
-  let filteredJobs;
   let perPage = 10;
   let totalPages = 0;
   let currentPage = 1;
-  let tableBody;
-  let jobsToDisplay;
 
   document.addEventListener("DOMContentLoaded", function () {
     const sheetUrl =
       "https://docs.google.com/spreadsheets/d/1OHIJj0D0Q-2lHgSL184vxBaxhIdSYqzso3UJvcRUflo/gviz/tq?tqx=out:csv";
-    tableBody = document.getElementById("jobTableBody");
+
     const searchInput = document.getElementById("searchInput");
     searchInput.addEventListener("input", () => {
-      currentPage = 1;
-      filteredJobs = filterJobs(activeJobs, searchInput);
-      renderTable(tableBody);
-      populateJobCount(filteredJobs);
+      applyFilters(activeJobs);
     });
 
     fetch(sheetUrl)
@@ -158,26 +152,41 @@
           .filter((row) => row[8].trim().toLowerCase() === "false");
         // rows.shift();
         activeJobs = [...rows];
-        filteredJobs = [...rows];
 
-        populateJobCount(filteredJobs);
+        populateJobCount(activeJobs);
 
-        renderTable(tableBody);
+        renderTable(activeJobs);
       })
       .catch((error) => console.error("Error loading sheet:", error));
   });
 
-  function filterJobs(jobs, searchInput) {
-    let result = [...jobs];
+  function applyFilters(items) {
+    currentPage = 1;
+    const criteria = getFilterCriteria();
+    const filteredItems = filterItems(items, criteria);
+    renderTable(filteredItems);
+    populateJobCount(filteredItems);
+  }
 
-    result = getSearchResults(result, searchInput);
+  function getFilterCriteria() {
+    const result = {
+      searchTerm: document.getElementById("searchInput").value.trim(),
+    };
 
     return result;
   }
 
-  function getSearchResults(itemsToSearch, searchInputField) {
-    const searchTerm = searchInputField.value.trim().toLowerCase();
+  function filterItems(items, criteria) {
+    let result = [...items];
 
+    if (criteria.searchTerm) {
+      result = getSearchResults(result, criteria.searchTerm);
+    }
+
+    return result;
+  }
+
+  function getSearchResults(itemsToSearch, searchTerm) {
     const result = itemsToSearch.filter((item) => {
       const employer = item[1].trim().toLowerCase();
       const jobTitle = item[2].trim().toLowerCase();
@@ -223,17 +232,17 @@
     return items.slice(start, end);
   }
 
-  function renderTable(tableBody) {
+  function renderTable(tableItems) {
+    const tableBody = document.getElementById("jobTableBody");
+    const itemsToDisplay = paginate(tableItems, currentPage, perPage);
     tableBody.innerHTML = "";
-    const controlsElement = document.getElementById("pagination-controls");
-    jobsToDisplay = paginate(filteredJobs, currentPage, perPage);
 
-    jobsToDisplay.forEach((job) => {
-      if (job.length < 9) return;
+    itemsToDisplay.forEach((item) => {
+      if (item.length < 9) return;
 
       const tr = document.createElement("tr");
 
-      job.forEach((cell, index) => {
+      item.forEach((cell, index) => {
         const td = document.createElement("td");
         if (index === 8 && cell.trim().toLowerCase() === "false") {
           tr.appendChild(td);
@@ -252,10 +261,11 @@
 
       tableBody.appendChild(tr);
     });
-    renderPaginationControls(controlsElement);
+    renderPaginationControls(tableItems);
   }
 
-  function renderPaginationControls(controlsElement) {
+  function renderPaginationControls(tableItems) {
+    const controlsElement = document.getElementById("pagination-controls");
     controlsElement.innerHTML = "";
     if (totalPages <= 1) return;
 
@@ -265,7 +275,7 @@
       prevBtn.disabled = currentPage === 1;
       prevBtn.onclick = () => {
         currentPage--;
-        renderTable(tableBody);
+        renderTable(tableItems);
       };
       controlsElement.appendChild(prevBtn);
     }
@@ -281,7 +291,7 @@
           if (isNaN(targetPage) || targetPage < 1) targetPage = currentPage;
           if (targetPage > totalPages) targetPage = totalPages;
           currentPage = targetPage;
-          renderTable(tableBody);
+          renderTable(tableItems);
         };
         controlsElement.appendChild(ellipsisBtn);
       } else {
@@ -290,7 +300,7 @@
         if (p === currentPage) pageBtn.disabled = true;
         pageBtn.onclick = () => {
           currentPage = p;
-          renderTable(tableBody);
+          renderTable(tableItems);
         };
         controlsElement.appendChild(pageBtn);
       }
@@ -302,7 +312,7 @@
       nextBtn.disabled = currentPage === totalPages;
       nextBtn.onclick = () => {
         currentPage++;
-        renderTable(tableBody);
+        renderTable(tableItems);
       };
       controlsElement.appendChild(nextBtn);
     }
