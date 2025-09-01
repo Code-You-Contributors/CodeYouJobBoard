@@ -17,6 +17,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     applyFilters(activeJobs);
   });
 
+  const locationInput = document.getElementById("locationFilter");
+  locationInput.addEventListener("change", () => {
+    applyFilters(activeJobs);
+  });
+
   try {
     const jobData = await fetchJobData(sheetUrl);
     activeJobs = parseJobData(jobData);
@@ -63,6 +68,7 @@ function getFilterCriteria() {
   const result = {
     searchTerm: document.getElementById("searchInput").value.trim(),
     pathway: document.getElementById("pathwayFilter").value.trim(),
+    location: document.getElementById("locationFilter").value.trim(),
   };
 
   return result;
@@ -77,6 +83,10 @@ function filterItems(items, criteria) {
 
   if (criteria.pathway) {
     result = result.filter((item) => item[3].trim() === criteria.pathway);
+  }
+
+  if (criteria.location) {
+    result = result.filter((item) => item[7].trim() === criteria.location);
   }
 
   return result;
