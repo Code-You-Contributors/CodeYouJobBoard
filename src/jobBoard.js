@@ -1,4 +1,5 @@
 let activeJobs = [];
+let tableHeaders = [];
 let perPage = 10;
 let totalPages = 0;
 let currentPage = 1;
@@ -26,20 +27,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const csvText = await fetchJobData(sheetUrl);
     const jobData = parseJobData(csvText);
     const allJobs = createJobs(jobData.tableHeaders, jobData.jobs);
-    const aJobs = getActiveJobs(allJobs);
-    ZZapplyFilters(aJobs);
+    activeJobs = getActiveJobs(allJobs);
 
-    activeJobs = parseJobData(csvText).jobs;
+    tableHeaders = jobData.tableHeaders;
     applyFilters(activeJobs);
-    updateStats(activeJobs);
+    updateJobStats(activeJobs);
   } catch (error) {
     console.error("Error loading sheet:", error);
   }
 });
-
-function getActiveJobs(allJobs) {
-  return allJobs.filter((job) => !job["Deactivate?"]);
-}
 
 async function fetchJobData(url) {
   let result;
@@ -60,7 +56,7 @@ function parseJobData(data) {
     .filter((row) => row.length)
     .map((row) => row.filter((cell) => cell !== ""))
     .map(replaceUnderscoresInRow);
-  // .filter((row) => row[8].trim().toLowerCase() === "false");
+
   const headers = [...jobData[0]];
   const jobs = createJobs(headers, jobData.slice(1));
 
@@ -107,6 +103,10 @@ function createJobs(keys, jobData) {
   return result;
 }
 
+function getActiveJobs(allJobs) {
+  return allJobs.filter((job) => !job["Deactivate?"]);
+}
+
 function parseDate(str) {
   const regex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/(\d{4})$/;
   const match = str.match(regex);
@@ -122,27 +122,13 @@ function parseDate(str) {
   return date;
 }
 
-function ZZapplyFilters(items) {
-  currentPage = 1;
-  const criteria = getFilterCriteria();
-  const filteredItems = ZZfilterItems(items, criteria);
-  console.log(filteredItems);
-
-  // const tableHeaders = [...items[0]];
-  // renderTable(filteredItems);
-  // populateJobCount(filteredItems);
-  // populateMinMaxSalary(filteredItems);
-}
-
 function applyFilters(items) {
   currentPage = 1;
   const criteria = getFilterCriteria();
   const filteredItems = filterItems(items, criteria);
 
-  const tableHeaders = [...items[0]];
   renderTable(filteredItems);
-  populateJobCount(filteredItems);
-  populateMinMaxSalary(filteredItems);
+  updateJobStats(filteredItems);
 }
 
 function getFilterCriteria() {
@@ -163,24 +149,6 @@ function filterItems(items, criteria) {
   }
 
   if (criteria.pathway) {
-    result = result.filter((item) => item[3].trim() === criteria.pathway);
-  }
-
-  if (criteria.location) {
-    result = result.filter((item) => item[7].trim() === criteria.location);
-  }
-
-  return result;
-}
-
-function ZZfilterItems(objects, criteria) {
-  let result = [...objects];
-
-  if (criteria.searchTerm) {
-    result = ZZgetSearchResults(result, criteria.searchTerm);
-  }
-
-  if (criteria.pathway) {
     result = result.filter(
       (item) => item["Pathway"].trim() === criteria.pathway
     );
@@ -197,24 +165,7 @@ function ZZfilterItems(objects, criteria) {
 
 function getSearchResults(itemsToSearch, searchTerm) {
   const result = itemsToSearch.filter((item) => {
-    const employer = item[1].trim().toLowerCase();
-    const jobTitle = item[2].trim().toLowerCase();
-    const skills = item[4].trim().toLowerCase();
-
-    return (
-      employer.includes(searchTerm) ||
-      jobTitle.includes(searchTerm) ||
-      skills.includes(searchTerm)
-    );
-  });
-
-  return result;
-}
-
-function ZZgetSearchResults(itemsToSearch, searchTerm) {
-  const result = itemsToSearch.filter((item) => {
     const employer = item["Employer"].trim().toLowerCase();
-    console.log(item);
     const jobTitle = item["Job Title"].trim().toLowerCase();
 
     return (
@@ -248,25 +199,6 @@ function replaceUnderscoresInRow(row) {
   return newRow;
 }
 
-function populateJobCount(jobList) {
-  document.getElementById("job-count").innerText = jobList.length;
-}
-
-function populateMinMaxSalary(jobList) {
-  const rangeElement = document.getElementById("pay-range");
-  let min = Infinity;
-  let max = -Infinity;
-
-  jobList.forEach((job) => {
-    const salary = parseDollar(job[5]);
-
-    if (salary < min) min = salary;
-    if (salary > max) max = salary;
-  });
-
-  rangeElement.innerText = `${formatDollar(min)} - ${formatDollar(max)}`;
-}
-
 function parseDollar(str) {
   return parseFloat(str.replace(/[$,]/g, ""));
 }
@@ -282,35 +214,61 @@ function formatDollar(amount) {
 }
 
 function renderTable(tableItems) {
-  const tableBody = document.getElementById("jobTableBody");
+  const tableEl = document.getElementById("jobTable");
   const itemsToDisplay = paginate(tableItems, currentPage, perPage);
-  tableBody.innerHTML = "";
+  tableEl.innerHTML = "";
+
+  renderHeader(tableEl, tableHeaders);
+  const tableBody = document.createElement("tbody");
+  tableBody.id = "jobTableBody";
 
   itemsToDisplay.forEach((item) => {
     if (item.length < 9) return;
 
     const tr = document.createElement("tr");
 
-    item.forEach((cell, index) => {
+    tableHeaders.forEach((header) => {
+      const lowerHeader = header.trim().toLowerCase();
+      if (lowerHeader.includes("deactivate")) return;
       const td = document.createElement("td");
-      if (index === 8 && cell.trim().toLowerCase() === "false") {
-        tr.appendChild(td);
-        return;
-      } else if (index === 8 && cell.trim()) {
-        const link = document.createElement("a");
-        link.href = cell.trim();
-        link.textContent = cell.trim();
-        link.target = "_blank";
-        td.appendChild(link);
-      } else {
-        td.textContent = cell.trim();
+      td.textContent = item[header];
+
+      if (lowerHeader.includes("date"))
+        td.textContent = item[header].toLocaleString().split(",")[0];
+
+      if (lowerHeader.includes("salary")) {
+        const min = item[header].min;
+        const max = item[header].max;
+
+        td.textContent = `$${min.toLocaleString()}${
+          max ? ` - $${max.toLocaleString}` : ""
+        }`;
       }
+
       tr.appendChild(td);
     });
 
     tableBody.appendChild(tr);
   });
+
+  tableEl.appendChild(tableBody);
   renderPaginationControls(tableItems);
+}
+
+function renderHeader(tableEl, headers) {
+  const head = document.createElement("thead");
+  const tr = document.createElement("tr");
+
+  headers.forEach((header) => {
+    if (header.trim().toLowerCase().includes("deactivate")) return;
+
+    const th = document.createElement("th");
+    th.textContent = header;
+    tr.appendChild(th);
+  });
+
+  head.appendChild(tr);
+  tableEl.appendChild(head);
 }
 
 function paginate(items, currentPage = 1, perPage = 20) {
@@ -405,46 +363,43 @@ function getPaginationRange(current, total) {
   return rangeWithDots;
 }
 
-// Job stats update function
-function updateStats(jobs) {
+function updateJobStats(jobs) {
   const jobCountEl = document.getElementById("job-count");
   const payRangeEl = document.getElementById("pay-range");
   const skillsEl = document.getElementById("skills-list");
 
-  // Number of jobs (within last 30 days)
-  const now = new Date();
-  const recentJobs = jobs.filter((row) => {
-    const postedDate = new Date(row[0]);
-    const diffDays = (now - postedDate) / (1000 * 60 * 60 * 24);
-    return diffDays <= 30;
-  });
-  jobCountEl.textContent = recentJobs.length;
+  jobCountEl.textContent = jobs.length;
 
-  // Pay range
-  const salaries = jobs
-    .map((row) => parseInt(row[5].replace(/[$,]/g, "")))
-    .filter((val) => !isNaN(val));
+  // Show min and max salary
+  let minSalary = Infinity;
+  let maxSalary = -Infinity;
 
-  if (salaries.length > 0) {
-    const minSalary = Math.min(...salaries);
-    const maxSalary = Math.max(...salaries);
-    payRangeEl.textContent = `Min: $${minSalary.toLocaleString()} - Max: $${maxSalary.toLocaleString()}`;
-  } else {
-    payRangeEl.textContent = "No salary data";
-  }
+  jobs.forEach((job) => {
+    minSalary = Math.min(minSalary, job["Salary Range"].min);
 
-  // Skills counts
-  const skillCounts = {};
-  jobs.forEach((row) => {
-    const skill = row[4];
-    if (skill) {
-      skillCounts[skill] = (skillCounts[skill] || 0) + 1;
+    if (!job["Salary Range"].max) {
+      maxSalary = Math.max(maxSalary, job["Salary Range"].min);
+    } else {
+      maxSalary = maxSalary = Math.max(maxSalary, job["Salary Range"].max);
     }
+  });
+  payRangeEl.textContent = `Min: $${minSalary.toLocaleString()} - Max: $${maxSalary.toLocaleString()}`;
+
+  // Get skill counts
+  const skillCounts = {};
+  jobs.forEach((job) => {
+    job["Language"].forEach((lang) => {
+      if (lang in skillCounts) {
+        skillCounts[lang]++;
+      } else {
+        skillCounts[lang] = 1;
+      }
+    });
   });
 
   // Turn into a display string
   const skillsText = Object.entries(skillCounts)
-    .map(([skill, count]) => `${skill} ${count}`)
+    .map(([skill, count]) => `${skill}: ${count}`)
     .join(", ");
 
   skillsEl.textContent = skillsText;
