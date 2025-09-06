@@ -11,17 +11,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const searchInput = document.getElementById("searchInput");
   searchInput.addEventListener("input", () => {
-    applyFilters(activeJobs);
+    refreshView(activeJobs);
   });
 
   const pathwayInput = document.getElementById("pathwayFilter");
   pathwayInput.addEventListener("change", () => {
-    applyFilters(activeJobs);
+    refreshView(activeJobs);
   });
 
   const locationInput = document.getElementById("locationFilter");
   locationInput.addEventListener("change", () => {
-    applyFilters(activeJobs);
+    refreshView(activeJobs);
   });
 
   try {
@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     activeJobs = getActiveJobs(allJobs);
 
     tableHeaders = jobData.tableHeaders;
-    applyFilters(activeJobs);
+    refreshView(activeJobs);
   } catch (error) {
     console.error("Error loading sheet:", error);
   }
@@ -122,14 +122,19 @@ function parseDate(str) {
   return date;
 }
 
-function applyFilters(items) {
+function refreshView(items) {
   currentPage = 1;
-  const criteria = getFilterCriteria();
-  const filteredItems = filterItems(items, criteria);
+  const filteredItems = applyFilters(items);
 
   sortItems(filteredItems, sortState);
   renderTable(filteredItems);
   updateJobStats(filteredItems);
+}
+
+function applyFilters(items) {
+  const criteria = getFilterCriteria();
+
+  return filterItems(items, criteria);
 }
 
 function getFilterCriteria() {
@@ -280,7 +285,7 @@ function renderHeader(tableEl, headers, tableItems) {
             : "asc";
 
         sortState = { key: header, direction: newDirection };
-        applyFilters(tableItems);
+        refreshView(tableItems);
       });
     }
 
