@@ -37,6 +37,10 @@
   --font-alt-headline: "Share Tech Mono", monospace;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: var(--font-body);
   background-color: var(--bg-1);
