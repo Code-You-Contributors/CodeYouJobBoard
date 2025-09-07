@@ -224,7 +224,6 @@ footer {
   outline: none;
 }
 
-
 /* Job Table */
 .table-container {
   background: var(--white);
@@ -259,6 +258,11 @@ footer {
 .job-table th:last-child {
   border-radius: 0 15px 0 0;
 }
+
+.job-table .sortable-header {
+  cursor: pointer;
+}
+
 .job-table td {
   padding: 15px 12px;
   border-bottom: 1px solid var(--bg-2);
@@ -435,7 +439,7 @@ helpful-links-top {
 
 .pagination-controls button {
   background-color: var(--black-cherry);
-  color: var(--white); 
+  color: var(--white);
   border-radius: 6px;
   padding: 6px 12px;
   cursor: pointer;
@@ -443,7 +447,7 @@ helpful-links-top {
 }
 
 .pagination-controls button:hover {
-  background-color: var(--b-magenta); 
+  background-color: var(--b-magenta);
   color: var(--white);
   border-color: #007bff;
 }
@@ -537,16 +541,15 @@ helpful-links-top {
 
   /* Show only Employer (2), Job Title (3), Language (5), Salary Range (6), Apply (9) */
   .job-table th:nth-child(2),
-  .job-table td:nth-child(2), 
+  .job-table td:nth-child(2),
   .job-table th:nth-child(3),
-  .job-table td:nth-child(3), 
+  .job-table td:nth-child(3),
   .job-table th:nth-child(5),
   .job-table td:nth-child(5),
   .job-table th:nth-child(6),
   .job-table td:nth-child(6),
   .job-table th:nth-child(9),
-  .job-table td:nth-child(9)
-  {
+  .job-table td:nth-child(9) {
     display: table-cell;
   }
 
