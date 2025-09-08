@@ -572,7 +572,8 @@ footer {
   .logo-horizontal {
     display: block;
     flex: 1;
-    width: 100%;
+    max-width: 100%;
+    max-height: 40px;
   }
 
   aside nav {
