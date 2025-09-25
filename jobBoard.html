@@ -105,26 +105,29 @@
       </div>
 
       <div class="table-container">
-        <table class="job-table" id="jobTable">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Employer</th>
-              <th>Job Title</th>
-              <th>Pathway</th>
-              <th>Language</th>
-              <th>Salary Range</th>
-              <th>Contact Person</th>
-              <th>Location</th>
-              <th>Apply</th>
-              <!-- <th>Vacancy</th> -->
-            </tr>
-          </thead>
-          <tbody id="jobTableBody">
-            <!-- Jobs will be populated by JavaScript -->
-          </tbody>
-        </table>
-        <div class="pagination-controls" id="pagination-controls"></div>
+        <div class="table-wrapper no-display">
+          <table class="job-table" id="jobTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Employer</th>
+                <th>Job Title</th>
+                <th>Pathway</th>
+                <th>Language</th>
+                <th>Salary Range</th>
+                <th>Contact Person</th>
+                <th>Location</th>
+                <th>Apply</th>
+                <!-- <th>Vacancy</th> -->
+              </tr>
+            </thead>
+            <tbody id="jobTableBody">
+              <!-- Jobs will be populated by JavaScript -->
+            </tbody>
+          </table>
+          <div class="pagination-controls" id="pagination-controls"></div>
+        </div>
+        <div class="job-data-status">Loading Job Data...</div>
       </div>
 
       <footer>

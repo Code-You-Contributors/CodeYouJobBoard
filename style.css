@@ -301,6 +301,16 @@ footer {
   width: 100%;
 }
 
+.job-data-status {
+  color: var(--b-purple);
+  font-size: 2rem;
+  height: 50vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .company-link {
   color: var(--b-blue);
   text-decoration: none;
@@ -537,6 +547,10 @@ footer {
 
 .no-scroll {
   overflow: hidden;
+}
+
+.no-display {
+  display: none;
 }
 
 @media (max-width: 1200px) {
