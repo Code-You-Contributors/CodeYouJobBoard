@@ -7,7 +7,7 @@ let currentPage = 1;
 
 document.addEventListener("DOMContentLoaded", async () => {
   const sheetUrl =
-    "https://docs.google.com/spreadsheets/d/1OHIJj0D0Q-2lHgSL184vxBaxhIdSYqzso3UJvcRUflo/gviz/tq?tqx=out:csv";
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjCxhcf73XCjoHZM2NtJ5WCrVEj2gGvH5QrnHnpsuSe1tcP_rfg8CFXbiOnQ64s1gOksAE6QFYknGR/pub?output=csv";
 
   const searchInput = document.getElementById("searchInput");
   searchInput.addEventListener("input", () => {
