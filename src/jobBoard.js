@@ -261,6 +261,17 @@ function renderTable(tableItems) {
         td.textContent = item[header].join(", ");
       }
 
+      if (lowerHeader.includes("apply")) {
+        if (item[header] !== "-") {
+          td.textContent = "";
+          const applyLink = document.createElement("a");
+          applyLink.target = "_blank";
+          applyLink.href = item[header];
+          applyLink.textContent = "Apply Now";
+          td.appendChild(applyLink);
+        }
+      }
+
       tr.appendChild(td);
     });
 
