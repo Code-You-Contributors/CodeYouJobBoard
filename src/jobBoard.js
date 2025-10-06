@@ -55,7 +55,7 @@ function parseJobData(data) {
     .map(parseCSVLine)
     .filter((row) => row.length)
     .map((row) => row.filter((cell) => cell !== ""))
-    .filter((row) => row.length === 9)
+    .filter((row) => row.length >= 9)
     .map(replaceUnderscoresInRow);
 
   result.tableHeaders = [...jobData[0]];
@@ -72,16 +72,17 @@ function createJobs(keys, jobData) {
     if (job.length < 9) return;
 
     keys.forEach((key, index) => {
-      if (key.trim().toLowerCase() === "date") {
+      const trimmedKey = key.trim();
+      if (trimmedKey.toLowerCase() === "date") {
         parsedJob[key] = parseDate(job[index]);
-      } else if (key.trim().toLowerCase() === "deactivate?") {
+      } else if (trimmedKey.toLowerCase() === "deactivate?") {
         // Convert the deactivate? field to an actual boolean
         if (job[index].trim().toLowerCase() === "false") {
           parsedJob[key] = false;
         } else {
           parsedJob[key] = true;
         }
-      } else if (key.trim().toLowerCase().includes("salary")) {
+      } else if (trimmedKey.toLowerCase().includes("salary")) {
         // Parse the salary values to floats
         const salaryRange = job[index].trim().replace(/[$,]/g, "").split("-");
         const min = parseFloat(salaryRange[0].trim());
@@ -89,7 +90,7 @@ function createJobs(keys, jobData) {
           salaryRange.length > 1 ? parseFloat(salaryRange[1].trim()) : null;
 
         parsedJob[key] = { min, max };
-      } else if (key.trim().toLowerCase() === "language") {
+      } else if (trimmedKey.toLowerCase() === "language") {
         parsedJob[key] = job[index].split(",");
       } else {
         parsedJob[key] = job[index].trim();
