@@ -222,9 +222,12 @@ function formatDollar(amount) {
 function renderTable(tableItems) {
   const tableEl = document.getElementById("jobTable");
   const jobDataStatusEl = document.querySelector(".job-data-status");
+  const tableWrapper = document.querySelector(".table-wrapper");
 
   if (tableItems.length === 0) {
     jobDataStatusEl.textContent = "No Jobs Posted in the Last 30 Days";
+    jobDataStatusEl.classList.remove("no-display");
+    tableWrapper.classList.add("no-display");
     return;
   }
   const itemsToDisplay = paginate(tableItems, currentPage, perPage);
@@ -283,7 +286,6 @@ function renderTable(tableItems) {
 
   tableEl.appendChild(tableBody);
   renderPaginationControls(tableItems);
-  const tableWrapper = document.querySelector(".table-wrapper");
   tableWrapper.classList.remove("no-display");
   jobDataStatusEl.classList.add("no-display");
 }

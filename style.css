@@ -247,6 +247,7 @@ footer {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  color: white;
 }
 
 .job-table th {

@@ -5,31 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Job Listings Page</title>
     <link rel="stylesheet" href="style.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&family=Share+Tech+Mono&display=swap"
-      rel="stylesheet"/>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
 
-    <link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
   </head>
 
   <body>
     <aside>
-      <img src="./assets/imgs/cy-logo-dstacked-color.png"
+      <img
+        src="./assets/imgs/cy-logo-dstacked-color.png"
         alt="CodeYou Logo"
         class="logo"
-        id="logo-stacked" />
-        <img src="./assets//imgs/cy-logo-horz-color.png" alt="Code:You Logo" class="logo-horizontal" id="logo-horizontal" />
+        id="logo-stacked"
+      />
+      <img
+        src="./assets//imgs/cy-logo-horz-color.png"
+        alt="Code:You Logo"
+        class="logo-horizontal"
+        id="logo-horizontal"
+      />
 
-        <nav>
-          <a href="index.html"><i class="fa-solid fa-house"></i> Home</a>
-          <a href="jobBoard.html"><i class="fa-solid fa-briefcase"></i> Job Board</a>
-          <a href="contact.html"><i class="fa-solid fa-address-book"></i> Contact Us</a>
-        </nav>
+      <nav>
+        <a href="index.html"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="jobBoard.html"
+          ><i class="fa-solid fa-briefcase"></i> Job Board</a
+        >
+        <a href="contact.html"
+          ><i class="fa-solid fa-address-book"></i> Contact Us</a
+        >
+      </nav>
     </aside>
 
     <div class="container">
       <div class="header">
-
         <h1>Job Listings</h1>
 
         <div class="search-section">
@@ -37,69 +51,71 @@
             type="text"
             class="search-bar"
             placeholder="Search jobs by title, company, or skills"
-            id="searchInput"/>
+            id="searchInput"
+          />
 
-        <!-- Dynamically pulls in the stats from our API call -->
-        <div class="stats">
-          <div class="stat-item">
-            <strong>Number of jobs:</strong>&nbsp;<span id="job-count">0</span>
-          </div>
-          <div class="stat-item">
-            <strong>Pay range:</strong>
-            <span id="pay-range">Loading...</span>
-          </div>
-          <div class="stat-item">
-            <strong>Skills:</strong>
-            <span id="skills-list">Loading...</span>
-          </div>
-      </div>
-
-
-
-        <div class="filters">
-          <div class="filter-group">
-            <label for="pathwayFilter">Pathway</label>
-            <select class="filter-select" id="pathwayFilter">
-              <option value="">All</option>
-              <option value="Python">Python</option>
-              <option value="C#">C#</option>
-              <option value="JavaScript">JavaScript</option>
-              <option value="PHP">PHP</option>
-            </select>
+          <!-- Dynamically pulls in the stats from our API call -->
+          <div class="stats">
+            <div class="stat-item">
+              <strong>Number of jobs:</strong>&nbsp;<span id="job-count"
+                >0</span
+              >
+            </div>
+            <div class="stat-item">
+              <strong>Pay range:</strong>
+              <span id="pay-range">Loading...</span>
+            </div>
+            <div class="stat-item">
+              <strong>Skills:</strong>
+              <span id="skills-list">Loading...</span>
+            </div>
           </div>
 
-          <div class="filter-group">
-            <label for="locationFilter">Location</label>
-            <select class="filter-select" id="locationFilter">
-              <option value="">All</option>
-              <option value="Remote">Remote</option>
-              <option value="Louisville">Louisville</option>
-              <option value="Southern Indiana">Southern Indiana</option>
-              <option value="Northern KY">Northern KY</option>
-              <option value="Central KY">Central KY</option>
-              <option value="Eastern KY">Eastern KY</option>
-            </select>
-          </div>
+          <div class="filters">
+            <div class="filter-group">
+              <label for="pathwayFilter">Pathway</label>
+              <select class="filter-select" id="pathwayFilter">
+                <option value="">All</option>
+                <option value="Python">Python</option>
+                <option value="C#">C#</option>
+                <option value="JavaScript">JavaScript</option>
+                <option value="PHP">PHP</option>
+              </select>
+            </div>
 
-          <div class="filter-group">
-            <label for="payRangeFilter">Pay Range</label>
-            <select class="filter-select" id="payRangeFilter">
-              <option value="">All</option>
-              <option value="50000">Min: $50,000</option>
-              <option value="150000">Max: $150,000</option>
-            </select>
-          </div>
+            <div class="filter-group">
+              <label for="locationFilter">Location</label>
+              <select class="filter-select" id="locationFilter">
+                <option value="">All</option>
+                <option value="Remote">Remote</option>
+                <option value="Louisville">Louisville</option>
+                <option value="Southern Indiana">Southern Indiana</option>
+                <option value="Northern KY">Northern KY</option>
+                <option value="Central KY">Central KY</option>
+                <option value="Eastern KY">Eastern KY</option>
+              </select>
+            </div>
 
-          <div class="filter-group">
-            <label for="skillsFilter">Skills</label>
-            <select class="filter-select" id="skillsFilter">
-              <option value="">All</option>
-              <option value="Python">Python</option>
-              <option value="C#">C#</option>
-              <option value="JavaScript">JavaScript</option>
-              <option value="PHP">PHP</option>
-              <option value="Excel">Excel</option>
-            </select>
+            <div class="filter-group">
+              <label for="payRangeFilter">Pay Range</label>
+              <select class="filter-select" id="payRangeFilter">
+                <option value="">All</option>
+                <option value="50000">Min: $50,000</option>
+                <option value="150000">Max: $150,000</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label for="skillsFilter">Skills</label>
+              <select class="filter-select" id="skillsFilter">
+                <option value="">All</option>
+                <option value="Python">Python</option>
+                <option value="C#">C#</option>
+                <option value="JavaScript">JavaScript</option>
+                <option value="PHP">PHP</option>
+                <option value="Excel">Excel</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
