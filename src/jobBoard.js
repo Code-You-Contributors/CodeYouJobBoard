@@ -255,9 +255,13 @@ function renderTable(tableItems) {
         const min = item[header].min;
         const max = item[header].max;
 
-        td.textContent = `${formatDollar(min)}${
-          max ? ` - ${formatDollar(max)}` : ""
-        }`;
+        if (!min) {
+          td.textContent = "Not Provided";
+        } else {
+          td.textContent = `${formatDollar(min)}${
+            max ? ` - ${formatDollar(max)}` : ""
+          }`;
+        }
       }
 
       if (lowerHeader.includes("language")) {
@@ -448,9 +452,13 @@ function updateJobStats(jobs) {
     }
   });
 
-  payRangeEl.textContent = `${formatDollar(minSalary)} - ${formatDollar(
-    maxSalary
-  )}`;
+  if (!minSalary && !maxSalary) {
+    payRangeEl.textContent = "No Data Available";
+  } else {
+    payRangeEl.textContent = `${formatDollar(minSalary)} - ${formatDollar(
+      maxSalary
+    )}`;
+  }
 
   // Get skill counts
   const skillCounts = {};
