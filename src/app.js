@@ -3,20 +3,20 @@
  * @description
  * Main server file for the Code:YouJobBoard project.
  * Sets up an Express server to serve static files and provide
- * an API endpoint that retrieves job data from a Mongo DB.
+ * an API endpoint that retrieves job data from a Google Sheet.
  *
  * @requires express
  * @requires path
+ * @requires axios
  * @requires mongoose
  * @requires dotenv
  */
 
 const express = require('express');
 const path = require('path');
+const axios = require('axios');
 const mongoose = require('mongoose');
 require('dotenv').config();
-
-const Job = require('./models/Job'); //  Import external Job model
 
 /**
  * Create an Express application instance.
@@ -32,10 +32,6 @@ const app = express();
  */
 const PORT = process.env.PORT || 3000;
 
-// ✅ Parse JSON bodies for POST requests
-app.use(express.json());
-
-// ✅ Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -43,40 +39,48 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log('✅ MongoDB Connected Successfully'))
 .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
-// ✅ Serve static files from root folder
+/**
+ * Middleware for serving static files.
+ * Serves all files from the root directory.
+ */
 app.use(express.static(path.join(__dirname, '..')));
 
-// ✅ Serve main HTML file
+/**
+ * GET /
+ * @description
+ * Serves the main landing page of the YouJobBoard app.
+ *
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @returns {void}
+ */
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
-// ✅ API route to get all jobs
-app.get('/api/jobs', async (req, res) => {
-  try {
-    const jobs = await Job.find();
-    res.json(jobs);
-  } catch (error) {
-    console.error('❌ Error fetching jobs:', error.message);
-    res.status(500).json({ error: 'Error fetching jobs from MongoDB' });
-  }
-});
-
-// ✅ API route to add a new job
-app.post('/api/jobs', async (req, res) => {
-  try {
-    const job = new Job(req.body);
-    await job.save();
-    res.status(201).json(job);
-  } catch (error) {
-    console.error('❌ Error saving job:', error.message);
-    res.status(400).json({ error: 'Error saving job to MongoDB' });
-  }
-});
-
-
-// API endpoint for Google Sheets
-/* app.get('/api/sheet', async (req, res) => {
+/**
+ * GET /api/sheet
+ * @description
+ * Fetches job data from a Google Sheet using the Google Sheets API.
+ * 
+ * The following environment variables must be configured in the `.env` file:
+ * - `XLSX_ID`: The Google Spreadsheet ID.
+ * - `Google_API_KEY`: Your Google Sheets API key.
+ * 
+ * The request can optionally include a query parameter `range`
+ * to specify a custom range (default: `JobBoard!A:I`).
+ *
+ * Example usage:
+ * ```
+ * GET /api/sheet
+ * GET /api/sheet?range=Sheet1!A:D
+ * ```
+ *
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @returns {Promise<void>} Sends JSON data from the Google Sheets API response.
+ */
+app.get('/api/sheet', async (req, res) => {
   const spreadsheetId = process.env.XLSX_ID;
   const API_KEY = process.env.Google_API_KEY;
 
@@ -94,7 +98,7 @@ app.post('/api/jobs', async (req, res) => {
     console.error('Google Sheets API error:', error.response ? error.response.data : error.message);
     res.status(500).json({ error: 'Error fetching Google Sheet' });
   }
-}); */
+});
 
 /**
  * Starts the Express server.
