@@ -35,6 +35,9 @@
     /* Fonts */
     --font-body: 'Roboto', sans-serif;
     --font-alt-headline: 'Share Tech Mono', monospace;
+
+    --radius: 8px;
+    
 }
 
 body {
@@ -88,7 +91,7 @@ aside p {
 section {
     margin-bottom: 30px;
     padding: 30px;
-    border-radius: 8px;
+    border-radius: var(--radius);
     background-color: var(--bg-4);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -106,7 +109,7 @@ section h2 {
     max-height: 200px;
     margin-bottom: 20px;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: var(--radius);
 }
 
 .how-to {
@@ -173,7 +176,7 @@ footer {
 .stat-item {
     background-color: var(--bg-3);
     padding: 10px 20px;
-    border-radius: 15px;
+    border-radius: var(--radius);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     margin-bottom: 30px;
@@ -184,7 +187,7 @@ footer {
     padding: 15px 20px;
     font-size: 1.1rem;
     border: 2px solid var(--b-blue);
-    border-radius: 50px;
+    border-radius: calc(var(--radius)*1.5);
     outline: none;
     transition: all 0.3s ease;
 }
@@ -215,7 +218,7 @@ footer {
 .filter-select {
     padding: 10px;
     border: 2px solid var(--b-blue);
-    border-radius: 10px;
+    border-radius: var(--radius);
     font-size: 1rem;
     transition: border-color 0.3s ease;
 }
@@ -252,11 +255,11 @@ footer {
 }
 
 .job-table th:first-child {
-    border-radius: 15px 0 0 0;
+    border-radius: var(--radius) 0 0 0;
 }
 
 .job-table th:last-child {
-    border-radius: 0 15px 0 0;
+    border-radius: 0 var(--radius) 0 0;
 }
 
 .job-table td {
@@ -300,9 +303,9 @@ footer {
     display: inline-block;
     color: var(--white);
     padding: 5px 10px;
-    border-radius: 20px;
+    border-radius: var(--radius);
     font-size: 0.8rem;
-    font-weight: 600p;
+    font-weight: 600;
     text-align: center;
     min-width: 80px;
 }
@@ -334,7 +337,7 @@ footer {
     background: var(--bg-2);
     color: var(--white);
     padding: 2px 8px;
-    border-radius: 12px;
+    border-radius: var(--radius);
     font-size: 0.7rem;
     border: 1px solid var(--b-blue);
     white-space: nowrap;
@@ -365,7 +368,7 @@ footer {
     color: var(--white);
     border: none;
     padding: 8px 20px;
-    border-radius: 20px;
+    border-radius: var(--radius);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -401,7 +404,7 @@ helpful-links-top {
     text-decoration: none;
     font-weight: 600;
     padding: 5px 10px;
-    border-radius: 20px;
+    border-radius: var(--radius);
     transition: all 0.3s ease;
     border: 2px solid var(--b-blue);
     display: inline-block;
