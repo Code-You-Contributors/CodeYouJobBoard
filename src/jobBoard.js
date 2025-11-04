@@ -48,7 +48,18 @@ async function fetchJobData(url) {
 
 function parseJobData(data) {
   let result = {};
-
+/** Defines jobData variable.
+ * Defines how job data is displayed, makes sure if there are extra spaces that it can read and parse and display it correctly still.
+ * trim() makes sure to trim/remove the whitespace before and after the input string.
+ * split(/\r?\n/): Splits the string into an array of lines. It accounts for both Windows (\r\n) and Unix (\n) line endings.
+ * .map(parseCSVLine): Applies the parseCSVLine function to each line, parsing it into an array of cells.
+ * .filter((row) => row.length): Filters out any rows that are empty.
+ * .map((row) => row.filter((cell) => cell !== "")): Removes empty cells from each row.
+ * .filter((row) => row.length >= 9): Keeps only rows that have at least 9 cells.
+ * .map(replaceUnderscoresInRow): Applies the replaceUnderscoresInRow function to each row. This replaces underscores with spaces or other characters for legibility.
+ * result.tableHeaders = [...jobData[0]];: Assigns the first row of jobData (headers) to result.tableHeaders.
+ * result.jobs = [...jobData.slice(1)];: Assigns all rows except the first (the actual job data) to result.jobs.
+ */
   const jobData = data
     .trim()
     .split(/\r?\n/)
