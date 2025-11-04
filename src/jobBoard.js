@@ -147,13 +147,41 @@ function parseDate(str) {
   return date;
 }
 
-function refreshView(items) {
-  currentPage = 1;
-  const filteredItems = applyFilters(items);
+ function refreshView(items) {
+ /**
+ * Current page number in the pagination system.
+ * @type {number}
+ */
+let currentPage = 1;
 
-  sortItems(filteredItems, sortState);
-  renderTable(filteredItems);
-  updateJobStats(filteredItems);
+/**
+ * Filters the list of items based on predefined criteria.
+ * @param {Array} items - The full list of items to filter.
+ * @returns {Array} The filtered list of items.
+ */
+const filteredItems = applyFilters(items);
+
+/**
+ * Sorts the filtered items based on the current sort state.
+ * @param {Array} items - The list of filtered items.
+ * @param {Object} sortState - The current sorting configuration.
+ * @returns {void}
+ */
+sortItems(filteredItems, sortState);
+
+/**
+ * Renders the filtered and sorted items into a table view.
+ * @param {Array} items - The list of items to render.
+ * @returns {void}
+ */
+renderTable(filteredItems);
+
+/**
+ * Updates job statistics based on the current list of items.
+ * @param {Array} items - The list of items used to calculate stats.
+ * @returns {void}
+ */
+updateJobStats(filteredItems);
 }
 
 function applyFilters(items) {
@@ -193,6 +221,18 @@ function filterItems(items, criteria) {
 
   return result;
 }
+
+/**
+ * Filters a list of job items based on a search term.
+ *
+ * The function checks if the search term is included in the employer name,
+ * job title, or any of the listed languages (case-insensitive).
+ *
+ * @param {Array<Object>} itemsToSearch - The array of job objects to search through.
+ * Each object should have the keys: "Employer", "Job Title", and "Language" (an array of strings).
+ * @param {string} searchTerm - The lowercase search term to match against job fields.
+ * @returns {Array<Object>} A filtered array of job objects that match the search term.
+ */
 
 function getSearchResults(itemsToSearch, searchTerm) {
   const result = itemsToSearch.filter((item) => {
@@ -236,12 +276,14 @@ function parseDollar(str) {
 
 function formatDollar(amount) {
   /**
-   * Formats a number as a US dollar currency string.
-   * Converts the given amount into a string with a dollar sign,
-   * comma separators, and two decimal places.
-   * @param {number} amount - The numeric amount to format.
-   * @returns {string} The formatted dollar string 
-   */
+ * Formats a numeric amount into a US dollar string.
+ *
+ * Adds a dollar sign and formats the number with comma separators
+ * and exactly two decimal places (e.g., "$1,234.56").
+ *
+ * @param {number} amount - The numeric value to format.
+ * @returns {string} The formatted dollar string.
+ */
   return (
     "$" +
     amount.toLocaleString("en-US", {
