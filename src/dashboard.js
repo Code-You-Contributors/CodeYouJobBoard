@@ -1,8 +1,36 @@
 // dashboard.html
+/**
+ * @fileoverview Dashboard helpers and rendering logic for the CodeYou job dashboard.
+ * Contains data parsing, filtering, pagination, table rendering and Chart.js integration.
+ *
+ */
 
+/**
+ * A Job object parsed from the CSV. Properties are derived from the CSV headers.
+ *
+ *  - Date (string in MM/DD/YYYY)
+ *  - Employer (string)
+ *  - Job Title (string)
+ *  - Pathway (string)
+ *  - Language (string|Array<string>)
+ *  - Salary Range (string)
+ *  - Contact Person (string)
+ *  - Location (string)
+ *  - Apply (string URL)
+ *  - Deactivate? (boolean)
+ *
+ *
+ */
+
+// Array of active job objects (populated during initialLoad after parsing)
 let allActiveJobs = [];
+
+// Array of table header strings read from the first CSV row
 let tableHeaders = [];
-let charts = {}; // Store Chart.js instances for destroy/recreate
+
+// Storage for chart instances (Chart.js) keyed by chart id like 'pie','donut','bar'.
+// Store Chart.js instances for destroy/recreate
+let charts = {}; 
 
 // Pagination state
 let dashPerPage = 10;
@@ -17,6 +45,7 @@ let dashSortDirection = 'asc';
 const LABEL_THRESHOLD_PCT = 1; // percent
 
 // Pagination and table helpers (dashboard-specific; inlined to avoid shared file)
+// Returns the slice for the requested page and total pages.
 function paginate(items, currentPage = 1, perPage = 10) {
   const totalPages = Math.max(1, Math.ceil(items.length / perPage));
   const start = (currentPage - 1) * perPage;
@@ -25,6 +54,8 @@ function paginate(items, currentPage = 1, perPage = 10) {
 }
 
 // Generate pagination range with adaptive neighboring pages and ellipses
+// Build a compact pagination range. Inserts "…" tokens when there are gaps.
+// This produces arrays like [1, '…', 4,5,6, '…', 20] depending on viewport.
 function getPaginationRange(current, total) {
   const viewportWidth = window.outerWidth || window.innerWidth || 1024;
   const numNeighboringPages = viewportWidth <= 550 ? 0 : 2;
@@ -41,10 +72,12 @@ function getPaginationRange(current, total) {
     }
   }
 
+  // Convert numeric range into a list containing numbers and ellipsis tokens
   let last = null;
   for (let i of range) {
     if (last) {
       if (i - last === 2) {
+         // If the gap is exactly one page, show that intervening page
         rangeWithDots.push(last + 1);
       } else if (i - last > 2) {
         rangeWithDots.push("…");
@@ -57,7 +90,7 @@ function getPaginationRange(current, total) {
   return rangeWithDots;
 }
 
-// Format a number as US dollar currency with no decimal places
+// Format a number as US dollars with no decimals. Returns 'Not Provided' for invalid inputs.
 function formatDollar(amount) {
   if (amount === undefined || amount === null || isNaN(amount)) return 'Not Provided';
   return (
@@ -69,13 +102,15 @@ function formatDollar(amount) {
   );
 }
 
-// Render pagination controls into a container element by id
+// Renders pagination buttons into the element with id=containerId.
+// onPageChange is called with the new page number.
 function renderPaginationControls(containerId, totalPages, currentPage, onPageChange) {
   const controlsElement = document.getElementById(containerId);
   if (!controlsElement) return;
   controlsElement.innerHTML = '';
   if (totalPages <= 1) return;
 
+  // Prev button
   if (currentPage !== 1) {
     const prevBtn = document.createElement('button');
     prevBtn.textContent = '◀ Prev';
@@ -84,9 +119,11 @@ function renderPaginationControls(containerId, totalPages, currentPage, onPageCh
     controlsElement.appendChild(prevBtn);
   }
 
+  // Page number buttons + ellipses
   const pageRange = getPaginationRange(currentPage, totalPages);
   pageRange.forEach((p) => {
     if (p === '…') {
+      // Ellipsis button prompts for a specific page number when clicked
       const ellipsisBtn = document.createElement('button');
       ellipsisBtn.textContent = '…';
       ellipsisBtn.onclick = () => {
@@ -106,6 +143,7 @@ function renderPaginationControls(containerId, totalPages, currentPage, onPageCh
     }
   });
 
+  // Next button
   if (currentPage !== totalPages) {
     const nextBtn = document.createElement('button');
     nextBtn.textContent = 'Next ▶';
@@ -116,6 +154,8 @@ function renderPaginationControls(containerId, totalPages, currentPage, onPageCh
 }
 
 // Map various location strings to short display labels the user requested.
+// Convert verbose or free-form location strings into short labels used on the UI/charts.
+// This improves readability on labels (e.g., "Northern KY" -> "NKY", "Louisville" stays "Louisville").
 function getShortLocationLabel(fullLabel) {
   if (!fullLabel) return '';
   const s = String(fullLabel).toLowerCase();
@@ -134,6 +174,8 @@ function getShortLocationLabel(fullLabel) {
 }
 
 // Exact copy from jobBoard.js for parse/create
+// Fetch CSV/text data from a URL and return as text.
+// At runtime this fetches the published Google Sheet CSV (sheetUrl variable below).
 async function fetchJobData(url) {
   let result;
 
@@ -143,6 +185,8 @@ async function fetchJobData(url) {
   return result;
 }
 
+// Parse CSV into rows and headers. Uses parseCSVLine to handle quoted fields.
+// Returns an object { tableHeaders: string[], jobs: string[][] } where jobs are raw cell arrays.
 function parseJobData(data) {
   let result = {};
 
@@ -151,9 +195,9 @@ function parseJobData(data) {
     .split(/\r?\n/)
     .map(parseCSVLine)
     .filter((row) => row.length)
-    .map((row) => row.filter((cell) => cell !== ""))
-    .filter((row) => row.length >= 9)
-    .map(replaceUnderscoresInRow);
+    .map((row) => row.filter((cell) => cell !== "")) // remove empty empty-cell items
+    .filter((row) => row.length >= 9) // guard: need at least 9 columns (sheet expectation)
+    .map(replaceUnderscoresInRow); // replace underscores with spaces
 
   result.tableHeaders = [...jobData[0]];
   result.jobs = [...jobData.slice(1)];
@@ -161,7 +205,7 @@ function parseJobData(data) {
   return result;
 }
 
-// Helper from jobBoard.js
+/// Parse a single CSV line into an array of cell strings, handling quoted commas.
 function parseCSVLine(line) {
   const result = [];
   let current = '';
@@ -170,6 +214,7 @@ function parseCSVLine(line) {
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
     if (char === '"') {
+      // Toggle inQuotes flag when encountering a quote
       inQuotes = !inQuotes;
     } else if (char === ',' && !inQuotes) {
       result.push(current.trim());
@@ -187,7 +232,8 @@ function replaceUnderscoresInRow(row) {
   return row.map(cell => cell.replace(/_/g, ' '));
 }
 
-// Toggle a value in a <select multiple> element by id. If value is already the only selection, clear to 'All'.
+// Toggle a value in a <select> element (multi-select). If the value is already the
+// only selected option, this resets selection to 'All'.
 function toggleSelectValue(selectId, value) {
   const select = document.getElementById(selectId);
   if (!select) return;
@@ -203,14 +249,21 @@ function toggleSelectValue(selectId, value) {
   opts.forEach(o => { o.selected = (o.value === value); });
 }
 
-// Create job objects from raw job data and keys
+// Create normalized job objects from header keys and raw CSV rows.
+// This function:
+//  - trims cells/keys
+//  - parses Date strings into Date objects
+//  - converts 'Deactivate?' to boolean-like value
+//  - parses Salary into an object {min,max,avg}
+//  - splits Language into an array
+// It returns an array of job objects keyed by the original CSV header strings.
 function createJobs(keys, jobData) {
   const result = [];
 
   jobData.forEach((job, rowIndex) => {  // Added rowIndex for logging
     const parsedJob = {};
     
-    // Hotfix: Skip if row is shorter than expected columns
+    // Guard: some rows may be malformed; skip those
     if (job.length < keys.length) {
       console.warn(`Skipping malformed row ${rowIndex + 2}: Expected ${keys.length} columns, got ${job.length}`, job);  // +2 assumes header + 1-based
       return;
@@ -219,7 +272,7 @@ function createJobs(keys, jobData) {
     keys.forEach((key, index) => {
       const cellValue = job[index];  // Raw cell
       if (cellValue === undefined || cellValue === null) {
-        // Safeguard: Default to empty for missing cells (rare if length check passes)
+        // Default to empty string for missing cells
         parsedJob[key] = '';
         console.warn(`Empty cell at row ${rowIndex + 2}, col ${index} (${key})`);
         return;
@@ -227,14 +280,15 @@ function createJobs(keys, jobData) {
 
       const trimmedKey = key.trim();
       const trimmedCell = String(cellValue).trim();  // Safe trim
-
+      // Field-specific normalization rules
       if (trimmedKey.toLowerCase() === "date") {
+        // store as Date object or null
         parsedJob[key] = parseDate(trimmedCell);
       } else if (trimmedKey.toLowerCase() === "deactivate?") {
-        // Convert the deactivate? field to an actual boolean
+        // convert to boolean-like: any value other than "false" (case-insensitive) becomes true
         parsedJob[key] = trimmedCell.toLowerCase() !== "false";
       } else if (trimmedKey.toLowerCase().includes("salary")) {
-        // Parse the salary values to floats
+        // parse salary like "$70,000 - $90,000" into numeric min/max/avg
         const salaryRange = trimmedCell.replace(/[$,]/g, "").split("-");
         const min = parseFloat(salaryRange[0].trim()) || null;
         const max = salaryRange.length > 1 ? parseFloat(salaryRange[1].trim()) || null : null;
@@ -242,8 +296,10 @@ function createJobs(keys, jobData) {
 
         parsedJob[key] = { min, max, avg };
       } else if (trimmedKey.toLowerCase() === "language") {
+        // languages are stored as array of trimmed strings
         parsedJob[key] = trimmedCell.split(",").map(lang => lang.trim()).filter(lang => lang);
       } else {
+        // default: store trimmed string
         parsedJob[key] = trimmedCell;
       }
     });
@@ -263,19 +319,21 @@ function getActiveJobs(allJobs) {
   return allJobs.filter((job) => !job["Deactivate?"]);
 }
  
-// Parse date in MM/DD/YYYY format to Date object
+// Parse date in MM/DD/YYYY format to Date object. Returns null if invalid.
 function parseDate(str) {
   const regex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[0-1])\/(\d{4})$/;
   const match = str.match(regex);
   if (!match) return null;
 
   const [, mm, dd, yyyy] = match;
+  // Construct a YYYY-MM-DD string to pass into Date constructor consistently
   return new Date(`${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`);
 }
 
-// Populate filter dropdowns based on allActiveJobs
+// // Populate the UI <select> controls for Language, Location and Salary based on data.
+// Languages are collected from job['Language'] arrays; Locations are normalized and deduped.
 function populateFilters() {
-  // Unique languages
+ // Unique languages from allActiveJobs
   const uniqueLangs = [...new Set(allActiveJobs.flatMap(job => job['Language'] || []))].sort();
   const langSelect = document.getElementById('languageSelect');
   langSelect.innerHTML = '';
@@ -313,7 +371,7 @@ function populateFilters() {
     locSelect.appendChild(option);
   });
 
-  // Salary filter options
+  // Salary filter options are fixed buckets
   const salarySelect = document.getElementById('salarySelect');
   salarySelect.innerHTML = '';
   const salaryOptions = [
@@ -344,7 +402,9 @@ function clearAllFilters() {
   updateFromFilters();
 }
 
-// Update dashboard based on current filter selections
+// Read UI filters, validate dates, apply filters to the in-memory job list, then update charts/table.
+// - Validates both dates exist and From < To and range >= 2 days
+// - Applies date, salary, language and location filters in sequence
 function updateFromFilters() {
   const startDateInput = document.getElementById("startDate");
   const endDateInput = document.getElementById("endDate");
@@ -392,6 +452,7 @@ function updateFromFilters() {
   });
 
   // Salary bucket filter
+  // Salary filter: uses parsed salary.avg for comparisons. 'All' means no filter.
   const salarySelect = document.getElementById('salarySelect');
   const selectedSalary = salarySelect ? salarySelect.value : 'All';
   const salaryFilteredJobs = dateFilteredJobs.filter(job => {
@@ -404,6 +465,7 @@ function updateFromFilters() {
     return true;
   });
 
+  // Read selected languages and locations from the select controls.
   let selectedLanguages = Array.from(document.getElementById('languageSelect').selectedOptions).map(opt => opt.value);
   let selectedLocations = Array.from(document.getElementById('locationSelect').selectedOptions).map(opt => opt.value);
 
@@ -418,6 +480,7 @@ function updateFromFilters() {
   let filteredJobs = salaryFilteredJobs;
 
   // Language filter: include jobs with at least one selected language
+  // Language filter: job passes if it includes any selected language (or if 'All' is selected)
   filteredJobs = filteredJobs.filter(job => {
     const jobLanguages = job['Language'] || [];
     // If 'All' is selected, don't filter by language
@@ -426,6 +489,7 @@ function updateFromFilters() {
   });
 
   // Location filter: include jobs in selected locations
+  // Location filter: if 'All' selected, pass all; otherwise match selectedLocations
   filteredJobs = filteredJobs.filter(job => {
     const jobLocation = job['Location'] || 'Unknown';
     // If 'All' is selected, don't filter by location
@@ -433,8 +497,10 @@ function updateFromFilters() {
     return selectedLocations.length === 0 || selectedLocations.includes(jobLocation);
   });
 
+   // Update a small stats element with the count of filtered jobs
   document.getElementById('jobCount').textContent = `Number of jobs: ${filteredJobs.length}`;
 
+  // Re-render charts and table
   renderCharts(filteredJobs);
   // Also render the jobs table below the charts
   if (typeof renderTable === 'function') {
@@ -444,13 +510,14 @@ function updateFromFilters() {
   }
 }
 
+// Render the dashboard table. Takes a filtered array of job objects.
 function renderTable(jobs) {
   const tableBody = document.getElementById('dashboardJobTableBody');
   const theadRow = document.getElementById('dashboardTableHeadRow');
   const statusEl = document.getElementById('dashboardJobStatus');
   if (!tableBody || !theadRow) return;
 
-  // Clear existing
+  // Clear existing content
   tableBody.innerHTML = '';
   theadRow.innerHTML = '';
 
@@ -486,6 +553,7 @@ function renderTable(jobs) {
     th.classList.add('sortable-header');
 
     // Add sort indicator span
+    // Sort indicator span appended to header
     const sortSpan = document.createElement('span');
     sortSpan.className = 'sort-indicator';
     sortSpan.textContent = '';
@@ -518,6 +586,7 @@ function renderTable(jobs) {
   dashTotalPages = totalPages;
   tableBody.innerHTML = '';
 
+  // Render rows for the current page
   pageItems.forEach(job => {
     const tr = document.createElement('tr');
     // Job Title
@@ -533,7 +602,7 @@ function renderTable(jobs) {
     tableBody.appendChild(tr);
   });
 
-  // Render pagination controls
+  // Render pagination controls. (will call renderTable again when page changes)
   renderPaginationControls('dashboard-pagination', dashTotalPages, dashCurrentPage, (p) => {
     dashCurrentPage = p;
     renderTable(jobs);
@@ -561,6 +630,8 @@ function renderTable(jobs) {
 }
 
 // Sorting helper for jobs table
+// Comparator used for sorting job rows in renderTable.
+// Handles Date, Salary Range (by avg) and Language (array)
 function sortJobs(a, b, column, direction) {
   const dir = direction === 'asc' ? 1 : -1;
   const av = (a && a[column] != null) ? a[column] : '';
@@ -593,7 +664,7 @@ function sortJobs(a, b, column, direction) {
   return aStr.localeCompare(bStr, undefined, {numeric: true}) * dir;
 }
 
-// Initial load function to fetch, parse, and setup dashboard
+// Initial load: fetch CSV, parse, create job objects, initialize filters and attach event handlers.
 async function initialLoad(url) {
   try {
     const csvText = await fetchJobData(url);
@@ -619,7 +690,8 @@ async function initialLoad(url) {
   }
 }
 
-// Render charts based on filtered jobs
+// Render charts (pie/donut/bar) using Chart.js based on the filtered jobs array.
+// Existing charts are destroyed and recreated to avoid memory leaks/state issues.
 function renderCharts(jobs) {
   // Destroy old charts
   Object.values(charts).forEach(chart => chart.destroy());
@@ -950,6 +1022,7 @@ function renderCharts(jobs) {
         onComplete: () => {}
       }
     },
+    // Draw values on top of bars after datasets are rendered
     plugins: [{
       afterDatasetsDraw: (chart) => {
         const ctx = chart.ctx;
@@ -976,6 +1049,7 @@ function renderCharts(jobs) {
   });
 }
 
+// DOMContentLoaded initialization: register chart plugins, set defaults, fetch data and wire events.
 document.addEventListener("DOMContentLoaded", async () => {
   // Register datalabels plugin (required for v4+)
   Chart.register(ChartDataLabels);
@@ -1062,7 +1136,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // no-op
   }
 
-  // Initial load
+  // Initial load of CSV and UI setup
   try {
     await initialLoad(sheetUrl);
   } finally {

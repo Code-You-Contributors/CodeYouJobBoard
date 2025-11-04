@@ -1,6 +1,7 @@
 # Notes and documentation
 _notes/
 
+
 # Dependencies
 node_modules/
 npm-debug.log*
@@ -116,3 +117,5 @@ config/secrets.json
 
 
 .vs/
+
+package.json
