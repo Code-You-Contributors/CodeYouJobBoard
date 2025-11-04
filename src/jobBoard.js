@@ -364,6 +364,17 @@ function paginate(items, currentPage = 1, perPage = 20) {
 }
 
 function renderPaginationControls(tableItems) {
+  /**
+  * Updates the pagination controls for a table view.
+ *
+ * Clears existing controls and adds a "Previous" button if the current page is not the first.
+ * The button decrements the current page and re-renders the table when clicked.
+ *
+ * @param {number} totalPages - Total number of pages available.
+ * @param {number} currentPage - The current page number being viewed.
+ * @param {Array<Object>} tableItems - The items to render in the table.
+ * @param {Function} renderTable - Callback function to render the table with updated items.
+ */
   const controlsElement = document.getElementById("pagination-controls");
   controlsElement.innerHTML = "";
   if (totalPages <= 1) return;
