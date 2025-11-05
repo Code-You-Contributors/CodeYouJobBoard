@@ -1049,15 +1049,29 @@ function renderCharts(jobs) {
   });
 }
 
-// DOMContentLoaded initialization: register chart plugins, set defaults, fetch data and wire events.
+/**
+ * Initializes the dashboard once the DOM is fully loaded.
+ * This ensures all elements (date pickers, buttons, and chart canvases) are available before 
+ * binding events or fetching data.
+ * Key Steps:
+ * 1. Registers Chart.js plugins for data labels and donut leader lines
+ * 2. Configures date pickers with default values (last 90 days)
+ * 3. Binds the update button to trigger data refresh
+ * 4. Handles loading overlay (spinner) to indicate async operations
+ * No parameters; runs automatically on page load
+ */
 document.addEventListener("DOMContentLoaded", async () => {
-  // Register datalabels plugin (required for v4+)
+  /* Registers the ChartDataLabels plugin for Chart.js (required for v4+)
+  * - This plugin adds data values directly on chart elements
+  */
   Chart.register(ChartDataLabels);
-  // Register donut leader-lines plugin globally to ensure it runs before charts are created
+  /* Registers a custom 'donutLeaderLines' plugin for Chart.js
+  * - This plugin runs after each chart draw and adds leader lines, labels, and percentages outside donut/pie charts
+  */
   Chart.register({
     id: 'donutLeaderLines',
     afterDraw: (chart) => {
-      // support both doughnut and pie charts
+      // Supports both doughnut and pie charts
       if (!chart || (chart.config.type !== 'doughnut' && chart.config.type !== 'pie')) return;
       const ctx = chart.ctx;
       const dataset = chart.data.datasets[0];
@@ -1112,20 +1126,41 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
   
+  /**
+   * Defines the URL for the Google Sheets CSV export.
+   * This is a public publish link to fetch raw data in CSV format.
+   * Used for initial load and potentially updates
+   * Note: Ensure the sheet is publicly accessible; if permissions change, fetches will fail
+   */
   const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjCxhcf73XCjoHZM2NtJ5WCrVEj2gGvH5QrnHnpsuSe1tcP_rfg8CFXbiOnQ64s1gOksAE6QFYknGR/pub?output=csv";
 
+  /**
+   * Retrieves DOM elements for date inputs, update button, and loading overlay.
+   * - startDateInput: Input for the start date of the data range
+   * - endDateInput: Input for the end date of the data range
+   * - updateBtn: Button to manually trigger data refresh
+   * - loadingOverlay: Overlay element for showing a spinner during async operations
+   * These are cached here for efficiency, as they're used multiple times
+   */
   const startDateInput = document.getElementById("startDate");
   const endDateInput = document.getElementById("endDate");
   const updateBtn = document.getElementById("updateBtn");
   const loadingOverlay = document.getElementById('loadingOverlay');
 
-  // Show overlay immediately while we fetch data and render charts
+  /**
+   * Displays the loading overlay immediately to indicate initial data fetching
+   * Sets display to 'flex' and updates aria-hidden for accessibility
+   */
   if (loadingOverlay) {
     loadingOverlay.style.display = 'flex';
     loadingOverlay.setAttribute('aria-hidden', 'false');
   }
 
-  // Default to last 90 days — only set defaults if inputs are empty to avoid visual blink
+  /**
+   * Sets default date values to the last 90 days if inputs are empty.
+   * - Calculates today's date and 90 days prior in YYYY-MM-DD format
+   * - Only sets if values are absent to prevent overwriting user-entered data or causing visual flickers
+   */
   try {
     const today = new Date();
     const last90 = new Date(today);
@@ -1136,7 +1171,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     // no-op
   }
 
-  // Initial load of CSV and UI setup
+  /**
+   * Performs the initial load of data from the sheet URL and sets up the UI.
+   * - Calls initialLoad() asynchronously to fetch and process CSV data
+   * - Wrapped in try/finally to ensure the loading overlay is hidden regardless of success or failure
+   */
   try {
     await initialLoad(sheetUrl);
   } finally {
@@ -1147,8 +1186,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Event listeners for date changes
-  // The Update button may have been removed from the DOM; guard before attaching.
+  /**
+   * Attaches event listeners for updating the dashboard based on user input.
+   * - If updateBtn exists, listens for 'click' to call updateFromFilters().
+   * - Listens for 'change' on startDateInput and endDateInput to auto-update.
+   * This enables dynamic filtering: manual via button or automatic on date changes.
+   * Guards against missing updateBtn (e.g., if removed from DOM).
+   */
   if (updateBtn) {
     updateBtn.addEventListener("click", updateFromFilters);
   }
