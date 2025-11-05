@@ -22,30 +22,47 @@
  *
  */
 
-// Array of active job objects (populated during initialLoad after parsing)
+
+/** @type {Array<Object>} */
 let allActiveJobs = [];
 
-// Array of table header strings read from the first CSV row
+
+/** @type {Array<string>} */
 let tableHeaders = [];
 
-// Storage for chart instances (Chart.js) keyed by chart id like 'pie','donut','bar'.
-// Store Chart.js instances for destroy/recreate
-let charts = {}; 
+/** @type {Object<string, Chart>} */
+let charts = {}; // Store Chart.js instances for destroy/recreate
 
 // Pagination state
+/** @type {number} */
 let dashPerPage = 10;
+
+/** @type {number} */
 let dashCurrentPage = 1;
+
+/** @type {number} */
 let dashTotalPages = 0;
 
 // Table sorting state
+/** @type {string|null} */
 let dashSortColumn = null; // e.g., 'Date' or 'Job Title'
+
+/** @type {'asc'|'desc'} */
 let dashSortDirection = 'asc';
 
 // Percentage threshold below which labels will be hidden to avoid overlap
+/** @const {number} */
 const LABEL_THRESHOLD_PCT = 1; // percent
 
-// Pagination and table helpers (dashboard-specific; inlined to avoid shared file)
-// Returns the slice for the requested page and total pages.
+/**
+ * Paginates a list of items.
+ * @param {Array} items - The array of items to paginate.
+ * @param {number} [currentPage=1] - The current page number.
+ * @param {number} [perPage=10] - The number of items per page.
+ * @returns {Object} - An object with paginated items and total pages.
+ * @property {Array} items - The items for the current page.
+ * @property {number} totalPages - The total number of pages.
+ */
 function paginate(items, currentPage = 1, perPage = 10) {
   const totalPages = Math.max(1, Math.ceil(items.length / perPage));
   const start = (currentPage - 1) * perPage;
@@ -53,9 +70,12 @@ function paginate(items, currentPage = 1, perPage = 10) {
   return { items: items.slice(start, end), totalPages };
 }
 
-// Generate pagination range with adaptive neighboring pages and ellipses
-// Build a compact pagination range. Inserts "…" tokens when there are gaps.
-// This produces arrays like [1, '…', 4,5,6, '…', 20] depending on viewport.
+/**
+ * Generate pagination range with adaptive neighboring pages and ellipses
+ * @param {number} current - The current page number.
+ * @param {number} total - The total number of pages.
+ * @returns {Array<number|string>} - Array of page numbers and ellipses.
+ */
 function getPaginationRange(current, total) {
   const viewportWidth = window.outerWidth || window.innerWidth || 1024;
   const numNeighboringPages = viewportWidth <= 550 ? 0 : 2;
@@ -90,7 +110,11 @@ function getPaginationRange(current, total) {
   return rangeWithDots;
 }
 
-// Format a number as US dollars with no decimals. Returns 'Not Provided' for invalid inputs.
+/**
+ * Format a number as US dollar currency with no decimal places
+ * @param {number} amount - The amount to format.
+ * @returns {string} - The formatted dollar string.
+ */
 function formatDollar(amount) {
   if (amount === undefined || amount === null || isNaN(amount)) return 'Not Provided';
   return (
@@ -102,8 +126,13 @@ function formatDollar(amount) {
   );
 }
 
-// Renders pagination buttons into the element with id=containerId.
-// onPageChange is called with the new page number.
+/**
+ * Render pagination controls into a container element by id
+ * @param {string} containerId - The ID of the container element.
+ * @param {number} totalPages - The total number of pages.
+ * @param {number} currentPage - The current page number.
+ * @param {function(number): void} onPageChange - Callback function for page change.
+ */
 function renderPaginationControls(containerId, totalPages, currentPage, onPageChange) {
   const controlsElement = document.getElementById(containerId);
   if (!controlsElement) return;
@@ -153,9 +182,11 @@ function renderPaginationControls(containerId, totalPages, currentPage, onPageCh
   }
 }
 
-// Map various location strings to short display labels the user requested.
-// Convert verbose or free-form location strings into short labels used on the UI/charts.
-// This improves readability on labels (e.g., "Northern KY" -> "NKY", "Louisville" stays "Louisville").
+/**
+ * Map various location strings to short display labels the user requested.
+ * @param {string} fullLabel - The full location label.
+ * @returns {string} - The short location label.
+ */
 function getShortLocationLabel(fullLabel) {
   if (!fullLabel) return '';
   const s = String(fullLabel).toLowerCase();
@@ -173,9 +204,11 @@ function getShortLocationLabel(fullLabel) {
   return parts.join(' ');
 }
 
-// Exact copy from jobBoard.js for parse/create
-// Fetch CSV/text data from a URL and return as text.
-// At runtime this fetches the published Google Sheet CSV (sheetUrl variable below).
+/**
+ * Fetch job data from a URL.
+ * @param {string} url - The URL to fetch data from.
+ * @returns {Promise<string>} - The fetched data as text.
+ */
 async function fetchJobData(url) {
   let result;
 
@@ -185,8 +218,13 @@ async function fetchJobData(url) {
   return result;
 }
 
-// Parse CSV into rows and headers. Uses parseCSVLine to handle quoted fields.
-// Returns an object { tableHeaders: string[], jobs: string[][] } where jobs are raw cell arrays.
+/**
+ * Parse job data from CSV text.
+ * @param {string} data - The CSV text data.
+ * @returns {Object} - Parsed job data.
+ * @property {Array<string>} tableHeaders - The table headers.
+ * @property {Array<Array<string>>} jobs - The job rows.
+ */
 function parseJobData(data) {
   let result = {};
 
@@ -205,7 +243,11 @@ function parseJobData(data) {
   return result;
 }
 
-/// Parse a single CSV line into an array of cell strings, handling quoted commas.
+/**
+ * Parse a CSV line, handling quotes.
+ * @param {string} line - The CSV line to parse.
+ * @returns {Array<string>} - The parsed cells.
+ */
 function parseCSVLine(line) {
   const result = [];
   let current = '';
@@ -227,13 +269,20 @@ function parseCSVLine(line) {
   return result;
 }
 
-// Replace underscores with spaces in each cell of a row
+/**
+ * Replace underscores with spaces in each cell of a row.
+ * @param {Array<string>} row - The row of cells.
+ * @returns {Array<string>} - The row with underscores replaced.
+ */
 function replaceUnderscoresInRow(row) {
   return row.map(cell => cell.replace(/_/g, ' '));
 }
 
-// Toggle a value in a <select> element (multi-select). If the value is already the
-// only selected option, this resets selection to 'All'.
+/**
+ * Toggle a value in a <select multiple> element by id. If value is already the only selection, clear to 'All'.
+ * @param {string} selectId - The ID of the select element.
+ * @param {string} value - The value to toggle.
+ */
 function toggleSelectValue(selectId, value) {
   const select = document.getElementById(selectId);
   if (!select) return;
@@ -249,14 +298,12 @@ function toggleSelectValue(selectId, value) {
   opts.forEach(o => { o.selected = (o.value === value); });
 }
 
-// Create normalized job objects from header keys and raw CSV rows.
-// This function:
-//  - trims cells/keys
-//  - parses Date strings into Date objects
-//  - converts 'Deactivate?' to boolean-like value
-//  - parses Salary into an object {min,max,avg}
-//  - splits Language into an array
-// It returns an array of job objects keyed by the original CSV header strings.
+/**
+ * Create job objects from raw job data and keys.
+ * @param {Array<string>} keys - The header keys.
+ * @param {Array<Array<string>>} jobData - The raw job data rows.
+ * @returns {Array<Object>} - The parsed job objects.
+ */
 function createJobs(keys, jobData) {
   const result = [];
 
@@ -310,16 +357,25 @@ function createJobs(keys, jobData) {
     }
   });
 
-  console.log(`Processed ${result.length} valid jobs from ${jobData.length} input rows`);
+  //console.log(`Processed ${result.length} valid jobs from ${jobData.length} input rows`);
   return result;
 }
 
 // Filter out deactivated jobs
+/**
+ * Get active jobs by filtering out deactivated ones.
+ * @param {Array<Object>} allJobs - The array of all job objects.
+ * @returns {Array<Object>} - The filtered array of active jobs.
+ */
 function getActiveJobs(allJobs) {
   return allJobs.filter((job) => !job["Deactivate?"]);
 }
  
-// Parse date in MM/DD/YYYY format to Date object. Returns null if invalid.
+/**
+ * Parse date in MM/DD/YYYY format to Date object.
+ * @param {string} str - The date string.
+ * @returns {Date|null} - The parsed Date object or null if invalid.
+ */
 function parseDate(str) {
   const regex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[0-1])\/(\d{4})$/;
   const match = str.match(regex);
@@ -330,8 +386,9 @@ function parseDate(str) {
   return new Date(`${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`);
 }
 
-// // Populate the UI <select> controls for Language, Location and Salary based on data.
-// Languages are collected from job['Language'] arrays; Locations are normalized and deduped.
+/**
+ * Populate filter dropdowns based on allActiveJobs.
+ */
 function populateFilters() {
  // Unique languages from allActiveJobs
   const uniqueLangs = [...new Set(allActiveJobs.flatMap(job => job['Language'] || []))].sort();
@@ -390,7 +447,9 @@ function populateFilters() {
   });
 }
 
-// Clear all filters to default state (All selected)
+/**
+ * Clear all filters to default state (All selected).
+ */
 function clearAllFilters() {
   const langSelect = document.getElementById('languageSelect');
   const locSelect = document.getElementById('locationSelect');
@@ -402,9 +461,9 @@ function clearAllFilters() {
   updateFromFilters();
 }
 
-// Read UI filters, validate dates, apply filters to the in-memory job list, then update charts/table.
-// - Validates both dates exist and From < To and range >= 2 days
-// - Applies date, salary, language and location filters in sequence
+/**
+ * Update dashboard based on current filter selections.
+ */
 function updateFromFilters() {
   const startDateInput = document.getElementById("startDate");
   const endDateInput = document.getElementById("endDate");
@@ -510,7 +569,10 @@ function updateFromFilters() {
   }
 }
 
-// Render the dashboard table. Takes a filtered array of job objects.
+/**
+ * Render the jobs table.
+ * @param {Array<Object>} jobs - The jobs to render.
+ */
 function renderTable(jobs) {
   const tableBody = document.getElementById('dashboardJobTableBody');
   const theadRow = document.getElementById('dashboardTableHeadRow');
@@ -629,9 +691,14 @@ function renderTable(jobs) {
   }
 }
 
-// Sorting helper for jobs table
-// Comparator used for sorting job rows in renderTable.
-// Handles Date, Salary Range (by avg) and Language (array)
+/**
+ * Sorting helper for jobs table.
+ * @param {Object} a - First job object.
+ * @param {Object} b - Second job object.
+ * @param {string} column - The column to sort by.
+ * @param {'asc'|'desc'} direction - The sort direction.
+ * @returns {number} - Comparison result.
+ */
 function sortJobs(a, b, column, direction) {
   const dir = direction === 'asc' ? 1 : -1;
   const av = (a && a[column] != null) ? a[column] : '';
@@ -664,7 +731,10 @@ function sortJobs(a, b, column, direction) {
   return aStr.localeCompare(bStr, undefined, {numeric: true}) * dir;
 }
 
-// Initial load: fetch CSV, parse, create job objects, initialize filters and attach event handlers.
+/**
+ * Initial load function to fetch, parse, and setup dashboard.
+ * @param {string} url - The URL to fetch job data from.
+ */
 async function initialLoad(url) {
   try {
     const csvText = await fetchJobData(url);
@@ -690,8 +760,10 @@ async function initialLoad(url) {
   }
 }
 
-// Render charts (pie/donut/bar) using Chart.js based on the filtered jobs array.
-// Existing charts are destroyed and recreated to avoid memory leaks/state issues.
+/**
+ * Render charts based on filtered jobs.
+ * @param {Array<Object>} jobs - The jobs to render charts for.
+ */
 function renderCharts(jobs) {
   // Destroy old charts
   Object.values(charts).forEach(chart => chart.destroy());
