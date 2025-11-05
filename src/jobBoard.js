@@ -222,6 +222,18 @@ function filterItems(items, criteria) {
   return result;
 }
 
+/**
+ * Filters a list of job items based on a search term.
+ *
+ * The function checks if the search term is included in the employer name,
+ * job title, or any of the listed languages (case-insensitive).
+ *
+ * @param {Array<Object>} itemsToSearch - The array of job objects to search through.
+ * Each object should have the keys: "Employer", "Job Title", and "Language" (an array of strings).
+ * @param {string} searchTerm - The lowercase search term to match against job fields.
+ * @returns {Array<Object>} A filtered array of job objects that match the search term.
+ */
+
 function getSearchResults(itemsToSearch, searchTerm) {
   const result = itemsToSearch.filter((item) => {
     const employer = item["Employer"].trim().toLowerCase();
