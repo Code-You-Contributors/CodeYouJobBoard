@@ -385,40 +385,65 @@ function renderTable(tableItems) {
   jobDataStatusEl.classList.add("no-display");
 }
 
+/**
+ * Creates and adds a table header to an HTML table.
+ * @param {HTMLElement} tableEl - The table element to add the header to.
+ * @param {string[]} headers - Array of column names for the header.
+ * @param {Object[]} tableItems - Array of job objects to be displayed.
+ */
 function renderHeader(tableEl, headers, tableItems) {
+  // Create a <thead> element to hold the table header
   const thead = document.createElement("thead");
+  // Create a <tr> element for the header row
   const tr = document.createElement("tr");
+  // Define indices of columns that can be sorted
   const sortableColumns = [0, 1, 2, 3, 5, 6, 7];
 
+  // Loop through each header name with its index
   headers.forEach((header, colIndex) => {
+    // Skip headers containing "deactivate" (case-insensitive)
     if (header.trim().toLowerCase().includes("deactivate")) return;
 
+    // Create a <th> element for the header cell
     const th = document.createElement("th");
+    // Set the header text
     th.textContent = header;
+    // Add a class to prevent text selection
     th.classList.add("no-select");
 
+    // Add sort indicator ( ▲ or ▼ ) if this header is currently sorted
     if (header === sortState.key) {
       th.textContent += sortState.direction === "asc" ? " ▲" : " ▼";
     }
 
+    // Make header sortable if its index is in sortableColumns
     if (sortableColumns.includes(colIndex)) {
+      // Add class to style sortable headers
       th.classList.add("sortable-header");
 
+      // Add click event listener to toggle sort direction and refresh table
       th.addEventListener("click", () => {
+        // Switch direction if the same column is clicked, otherwise default to ascending
         const newDirection =
           sortState.key === header && sortState.direction === "asc"
             ? "desc"
             : "asc";
 
+        // Update sort state
         sortState = { key: header, direction: newDirection };
+        // Refresh table with updated sort
         refreshView(tableItems);
       });
     }
 
+    // Add the header cell to the row
     tr.appendChild(th);
   });
 
+
+  // Add the header row to the <thead>
   thead.appendChild(tr);
+  // Add the <thead> to the table
   tableEl.appendChild(thead);
 }
 
