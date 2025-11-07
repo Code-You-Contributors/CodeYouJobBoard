@@ -361,11 +361,20 @@ function createJobs(keys, jobData) {
   return result;
 }
 
-// Filter out deactivated jobs
 /**
- * Get active jobs by filtering out deactivated ones.
- * @param {Array<Object>} allJobs - The array of all job objects.
- * @returns {Array<Object>} - The filtered array of active jobs.
+ * Filters an array of job objects to return only the active ones.
+ * - A job is considered active if its "Deactivate?" property is falsy
+ * - This function uses Array.prototype.filter() to create a new array excluding deactivated jobs
+ * 
+ * @param {Array<Object>} allJobs - The array of job objects to filter. 
+ * @returns {Array<Object>} A new array containing only the active job objects.
+ * @example
+ * const jobs = [
+ *   { id: 1, "Deactivate?": false },
+ *   { id: 2, "Deactivate?": true },
+ *   { id: 3 }  // No "Deactivate?" -> active
+ * ];
+ * const active = getActiveJobs(jobs);  // Returns jobs with id 1 and 3
  */
 function getActiveJobs(allJobs) {
   return allJobs.filter((job) => !job["Deactivate?"]);
