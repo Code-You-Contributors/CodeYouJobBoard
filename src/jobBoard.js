@@ -526,11 +526,22 @@ function getPaginationRange(current, total) {
   return rangeWithDots;
 }
 
+/**
+ * Updates the job stats displayed on the dashboard based on a list of job objects.
+ * This function modifies DOM elements to show the total job count, salary range (min to max across all jobs),
+ * and a comma-separated list of skill counts (aggregated from languages in each job).
+ * - Handles edge cases like no jobs or missing salary data by setting fallback text
+ * - Relies on formatDollar() for currency formatting
+ * 
+ * @param {Array<Object>} jobs - The array of job objects to compute stats from
+ * @returns {void} Updates DOM elements directly; no return value
+ */
 function updateJobStats(jobs) {
   const jobCountEl = document.getElementById("job-count");
   const payRangeEl = document.getElementById("pay-range");
   const skillsEl = document.getElementById("skills-list");
 
+  // Handles no jobs case by setting default text
   if (jobs.length === 0) {
     jobCountEl.textContent = "0";
     payRangeEl.textContent = "No Salary Data";
@@ -538,9 +549,11 @@ function updateJobStats(jobs) {
     return;
   }
 
+  // Sets the job count display to the number of jobs
   jobCountEl.textContent = jobs.length;
 
-  // Show min and max salary
+  // Shows min and max salary
+  // - Calculates the overall minimum and maximum salary across all jobs
   let minSalary = Infinity;
   let maxSalary = -Infinity;
 
@@ -554,6 +567,8 @@ function updateJobStats(jobs) {
     }
   });
 
+  // Sets the pay range text: fallback if no valid salaries, else formatted min-max
+  // - Uses formatDollar() to convert numbers to currency strings
   if (!minSalary && !maxSalary) {
     payRangeEl.textContent = "No Data Available";
   } else {
@@ -562,7 +577,9 @@ function updateJobStats(jobs) {
     )}`;
   }
 
-  // Get skill counts
+  // Gets skill counts
+  // - Aggregates counts of each unique skill/language across all jobs
+  // - Uses an object as a map for efficient counting
   const skillCounts = {};
   jobs.forEach((job) => {
     job["Language"].forEach((lang) => {
@@ -574,7 +591,8 @@ function updateJobStats(jobs) {
     });
   });
 
-  // Turn into a display string
+  // Sets the skills list text
+  // - Converts skill counts object into a comma-separated string for display
   const skillsText = Object.entries(skillCounts)
     .map(([skill, count]) => `${skill}: ${count}`)
     .join(", ");
