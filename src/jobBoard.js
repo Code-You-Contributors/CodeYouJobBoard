@@ -264,6 +264,19 @@ function parseCSVLine(line) {
   );
 }
 
+/**
+ * Replaces all underscores in the column of a row array with spaces.
+ * This function creates a shallow copy of the input row to avoid mutating the original,
+ * modifies only the specified index ("Location" column), and returns the updated array. 
+ * - Used during CSV parsing to clean up underscored text in Location field
+ * 
+ * @param {Array<string>} row - The array representing a parsed CSV row
+ * @returns {Array<string>} A new array with underscores replaced
+ * @example
+ * const inputRow = ['Val1', 'Val2', 'Val3', 'Val4', 'Val5', 'Val6', 'Val7', 'Central_KY', 'Val9'];
+ * const output = replaceUnderscoresInRow(inputRow);
+ * // output = ['Val1', 'Val2', 'Val3', 'Val4', 'Val5', 'Val6', 'Val7', 'Central KY', 'Val9']
+ */
 function replaceUnderscoresInRow(row) {
   const newRow = [...row];
   newRow[7] = newRow[7].replaceAll("_", " ");
