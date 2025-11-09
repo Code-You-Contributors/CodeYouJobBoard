@@ -47,6 +47,7 @@
  * - Validate accessibility (alt text, link contrast, etc.) when updating assets.
  */
 
+
  ## jobBoard.html
  /**
  * @file jobBoard.html
@@ -109,7 +110,6 @@
  * @note
  * - Ensure IDs (`#searchInput`, `#job-count`, `#pay-range`, etc.) are not renamed unless updated in `jobBoard.js`.
  * - Tables use `.no-display` and `.job-data-status` for load-state toggling.
- * - Future enhancement: add sorting and “save job” functionality.
  */
 
 
@@ -185,8 +185,8 @@
  * - Accessibility: `aria-live` and `aria-hidden` attributes used for dynamic regions.
  */
 
- ## 
 
+ ## jobSubmission.html
  /**
  * @file jobSubmission.html
  * @description Job submission form for the CODE:You Job Board project. 
@@ -241,5 +241,70 @@
  * - The Google Sheet integration must be active and accessible for successful submissions.
  * - Consider converting it to MongoDB.
  */
+
+
+ ## contact.html
+ /**
+ * @file contact.html
+ * @description Contact page for the CODE:You Job Board project. 
+ * Displays the current CODE:You staff team, including managers, career coaches, 
+ * and project leads, along with their roles and Slack handles for communication.
+ *
+ * @section Overview
+ * The Contact page serves as a directory for students and contributors to connect 
+ * with CODE:You staff. Each team member is presented with a photo, full name, 
+ * title, and Slack username for internal collaboration and mentorship support.
+ *
+ * @section Layout
+ * - **Aside Navigation:**
+ *   - Displays CODE:You logos (stacked and horizontal).
+ *   - Navigation links:
+ *     - Home (`index.html`)
+ *     - Job Board (`jobBoard.html`)
+ *     - Dashboard (`dashboard.html`)
+ *     - Contact Us (`contact.html`) — active page.
+ *
+ * - **Main Content Section:**
+ *   - Title: “CODE:You Staff”
+ *   - Grid of staff profile cards (`.staff-cards`), each containing:
+ *     - Profile photo (`.staff-photo`)
+ *     - Full name (`<h3>`)
+ *     - Role / job title
+ *     - Slack handle for internal messaging
+ *
+ *   - Staff members featured:
+ *     1. Shannon Sheehy – Manager of Strategic Partnerships  
+ *     2. Alli Rippy – Employer Relationships  
+ *     3. Kandi Hall – Technical Career Coach  
+ *     4. Jenny Terry – Technical Career Coach  
+ *     5. David York – Technical Project Manager  
+ *     6. Danny Morton – Technical Project Manager
+ *
+ * - **Footer:**
+ *   - Displays © 2025 Code:You notice.
+ *   - Hamburger menu icon for responsive navigation on mobile screens.
+ *
+ * @section Assets
+ * - **Images:**
+ *   - `/assets/imgs/shannon-photo.jpg`
+ *   - `/assets/imgs/alli-photo.jpg`
+ *   - `/assets/imgs/jenny-photo.jpg`
+ *   - `/assets/imgs/david-photo.jpg`
+ *   - `/assets/imgs/DannyMorton1.jpg`
+ *   - `/assets/imgs/cy-logo-dstacked-color.png`
+ *   - `/assets/imgs/cy-logo-horz-color.png`
+ *
+ * @dependencies
+ * - **CSS:** `/public/style.css`
+ * - **Fonts:** Google Fonts (Roboto, Share Tech Mono)
+ * - **Icons:** Font Awesome 6.5.0
+ * - **JavaScript:** `/src/menu.js` (controls hamburger menu behavior)
+ *
+ * @note
+ * - Update staff list and images as team members change.
+ * - Optimize and compress all photos for web performance.
+ * - Maintain consistent naming conventions for images and Slack handles.
+ */
+
 
 
