@@ -3,18 +3,21 @@
  * @description
  * Main server file for the Code:YouJobBoard project.
  * Sets up an Express server to serve static files and provide
- * an API endpoint that retrieves job data from a Google Sheet.
+ * an API endpoint that retrieves job data from MongoDB via Mongoose.
  *
  * @requires express
  * @requires path
- * @requires axios
+ * @requires mongoose
  * @requires dotenv
  */
 
 const express = require('express');
 const path = require('path');
-const axios = require('axios');
+const mongoose = require('mongoose');
 require('dotenv').config();
+
+// Import the Job model
+const Job = require('../models/Job');
 
 /**
  * Create an Express application instance.
@@ -31,6 +34,17 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /**
+ * MongoDB connection using Mongoose.
+ * Connects to the URI from environment variables.
+ */
+mongoose.connect(process.env.DATABASE_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('✅ Connected to MongoDB via Mongoose'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
+
+/**
  * Middleware for serving static files.
  * Serves all files from the `public` directory.
  */
@@ -40,10 +54,6 @@ app.use(express.static(path.join(__dirname, '..')));
  * GET /
  * @description
  * Serves the main landing page of the YouJobBoard app.
- *
- * @param {import('express').Request} req - Express request object
- * @param {import('express').Response} res - Express response object
- * @returns {void}
  */
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'index.html'));
@@ -52,48 +62,50 @@ app.get('/', (req, res) => {
 /**
  * GET /api/sheet
  * @description
- * Fetches job data from a Google Sheet using the Google Sheets API.
- * 
- * The following environment variables must be configured in the `.env` file:
- * - `XLSX_ID`: The Google Spreadsheet ID.
- * - `Google_API_KEY`: Your Google Sheets API key.
- * 
- * The request can optionally include a query parameter `range`
- * to specify a custom range (default: `JobBoard!A:I`).
- *
- * Example usage:
- * ```
- * GET /api/sheet
- * GET /api/sheet?range=Sheet1!A:D
- * ```
+ * Fetches job data from MongoDB via Mongoose and returns it in a format similar to the Google Sheets API.
+ * Filters out deactivated jobs.
  *
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
- * @returns {Promise<void>} Sends JSON data from the Google Sheets API response.
+ * @returns {Promise<void>} Sends JSON data from MongoDB.
  */
 app.get('/api/sheet', async (req, res) => {
-  const spreadsheetId = process.env.XLSX_ID;
-  const API_KEY = process.env.Google_API_KEY;
-
-  console.log('Using API Key:', API_KEY ? 'Found' : 'Missing');
-  console.log('Using Spreadsheet ID:', spreadsheetId ? 'Found' : 'Missing');
-
-  // Dynamic range for the Sheets API — A:I are currently used columns.
-  const range = encodeURIComponent(req.query.range || 'JobBoard!A:I');
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?majorDimension=COLUMNS&key=${API_KEY}`;
-
   try {
-    const response = await axios.get(url);
-    res.json(response.data);
+    
+    const jobs = await Job.find().lean();
+   
+
+    // Transform to match expected format (array of arrays, like Google Sheets)
+    const headers = ['Date', 'Employer', 'Job Title', 'Pathway', 'Language', 'Salary Range', 'Contact Person', 'Location', 'Deactivate?', 'Apply'];
+    const rows = jobs.map(job => [
+      job['Date'] ? job['Date'].toLocaleDateString('en-US') : '',
+      job['Employer'] || '',
+      job['Job Title'] || '',
+      job['Pathway'] || '',
+      job['Language'] ? job['Language'].join(', ') : '',
+      job['Salary Range']
+        ? `$${job['Salary Range'].min || 0} - $${job['Salary Range'].max || job['Salary Range'].min || 0}`
+        : '',
+      job['Contact Person'] || '',
+      job['Location'] || '',
+      job['Deactivate?'] ? 'TRUE' : 'FALSE',
+      job['Apply'] || ''
+    ]);
+
+    // Return in Google Sheets-like format
+    res.json({
+      values: [headers, ...rows],
+      majorDimension: 'ROWS'
+    });
+
   } catch (error) {
-    console.error('Google Sheets API error:', error.response ? error.response.data : error.message);
-    res.status(500).json({ error: 'Error fetching Google Sheet' });
+    console.error('Mongoose error:', error);
+    res.status(500).json({ error: 'Error fetching data from MongoDB' });
   }
 });
 
 /**
  * Starts the Express server.
- * Logs a confirmation message with the local server URL.
  */
 app.listen(PORT, () => {
   console.log(`✅ Server started at http://localhost:${PORT}`);

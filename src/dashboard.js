@@ -207,15 +207,14 @@ function getShortLocationLabel(fullLabel) {
 /**
  * Fetch job data from a URL.
  * @param {string} url - The URL to fetch data from.
- * @returns {Promise<string>} - The fetched data as text.
+ * @returns {Promise<string>} - The fetched data as JSON.
  */
 async function fetchJobData(url) {
-  let result;
-
   const response = await fetch(url);
-  result = await response.text();
-
-  return result;
+  if (!response.ok) throw new Error(`Failed to load jobs (${response.status})`);
+  const payload = await response.json();                     
+  if (!payload?.values?.length) throw new Error("Missing values array");
+  return payload.values;                                      
 }
 
 /**
@@ -225,58 +224,58 @@ async function fetchJobData(url) {
  * @property {Array<string>} tableHeaders - The table headers.
  * @property {Array<Array<string>>} jobs - The job rows.
  */
-function parseJobData(data) {
-  let result = {};
+function parseJobData(values) {
+  const [headers = [], ...rows] = values;
 
-  const jobData = data
-    .trim()
-    .split(/\r?\n/)
-    .map(parseCSVLine)
-    .filter((row) => row.length)
-    .map((row) => row.filter((cell) => cell !== "")) // remove empty empty-cell items
-    .filter((row) => row.length >= 9) // guard: need at least 9 columns (sheet expectation)
-    .map(replaceUnderscoresInRow); // replace underscores with spaces
+  // Normalize rows to the header length and clean only the Location cell
+  const normalized = rows
+    .filter(row => row.some(cell => cell && String(cell).trim() !== ''))
+    .map(row => {
+      const r = headers.map((_, i) => row[i] ?? '');
+      const locIdx = headers.findIndex(h => h.trim().toLowerCase() === 'location');
+      if (locIdx >= 0 && typeof r[locIdx] === 'string') r[locIdx] = r[locIdx].replaceAll('_', ' ');
+      return r;
+    });
 
-  result.tableHeaders = [...jobData[0]];
-  result.jobs = [...jobData.slice(1)];
-
-  return result;
+  return { tableHeaders: headers, jobs: normalized };
 }
 
+// Needs to be removed? Not used anywhere.
 /**
  * Parse a CSV line, handling quotes.
  * @param {string} line - The CSV line to parse.
  * @returns {Array<string>} - The parsed cells.
  */
-function parseCSVLine(line) {
-  const result = [];
-  let current = '';
-  let inQuotes = false;
+// function parseCSVLine(line) {
+//   const result = [];
+//   let current = '';
+//   let inQuotes = false;
 
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    if (char === '"') {
-      // Toggle inQuotes flag when encountering a quote
-      inQuotes = !inQuotes;
-    } else if (char === ',' && !inQuotes) {
-      result.push(current.trim());
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  result.push(current.trim());
-  return result;
-}
+//   for (let i = 0; i < line.length; i++) {
+//     const char = line[i];
+//     if (char === '"') {
+//       // Toggle inQuotes flag when encountering a quote
+//       inQuotes = !inQuotes;
+//     } else if (char === ',' && !inQuotes) {
+//       result.push(current.trim());
+//       current = '';
+//     } else {
+//       current += char;
+//     }
+//   }
+//   result.push(current.trim());
+//   return result;
+// }
 
-/**
- * Replace underscores with spaces in each cell of a row.
- * @param {Array<string>} row - The row of cells.
- * @returns {Array<string>} - The row with underscores replaced.
- */
-function replaceUnderscoresInRow(row) {
-  return row.map(cell => cell.replace(/_/g, ' '));
-}
+// Needs to be removed? Not used anywhere.
+// /**
+//  * Replace underscores with spaces in each cell of a row.
+//  * @param {Array<string>} row - The row of cells.
+//  * @returns {Array<string>} - The row with underscores replaced.
+//  */
+// function replaceUnderscoresInRow(row) {
+//   return row.map(cell => cell.replace(/_/g, ' '));
+// }
 
 /**
  * Toggle a value in a <select multiple> element by id. If value is already the only selection, clear to 'All'.
@@ -1213,8 +1212,8 @@ document.addEventListener("DOMContentLoaded", async () => {
    * Used for initial load and potentially updates
    * Note: Ensure the sheet is publicly accessible; if permissions change, fetches will fail
    */
-  const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjCxhcf73XCjoHZM2NtJ5WCrVEj2gGvH5QrnHnpsuSe1tcP_rfg8CFXbiOnQ64s1gOksAE6QFYknGR/pub?output=csv";
-
+  // const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjCxhcf73XCjoHZM2NtJ5WCrVEj2gGvH5QrnHnpsuSe1tcP_rfg8CFXbiOnQ64s1gOksAE6QFYknGR/pub?output=csv";
+   const sheetUrl = "/api/sheet";
   /**
    * Retrieves DOM elements for date inputs, update button, and loading overlay.
    * - startDateInput: Input for the start date of the data range

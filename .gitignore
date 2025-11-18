@@ -119,3 +119,5 @@ config/secrets.json
 .vs/
 
 package.json
+*.csv
+loadData.js

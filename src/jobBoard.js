@@ -6,9 +6,9 @@ let totalPages = 0;
 let currentPage = 1;
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const sheetUrl =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjCxhcf73XCjoHZM2NtJ5WCrVEj2gGvH5QrnHnpsuSe1tcP_rfg8CFXbiOnQ64s1gOksAE6QFYknGR/pub?output=csv";
-
+  // const sheetUrl =
+  //   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjCxhcf73XCjoHZM2NtJ5WCrVEj2gGvH5QrnHnpsuSe1tcP_rfg8CFXbiOnQ64s1gOksAE6QFYknGR/pub?output=csv";
+   const sheetUrl = "/api/sheet";
   const searchInput = document.getElementById("searchInput");
   searchInput.addEventListener("input", () => {
     refreshView(activeJobs);
@@ -38,41 +38,32 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function fetchJobData(url) {
-  let result;
-
   const response = await fetch(url);
-  result = await response.text();
-
-  return result;
+  if (!response.ok) {
+    throw new Error(`Failed to load jobs (${response.status})`);
+  }
+  console.log(response);
+  
+  const payload = await response.json();
+  if (!payload?.values?.length) {
+    throw new Error("Job payload missing values array");
+  }
+  console.log("Fetched job data:", payload.values);
+  return payload.values;
 }
 
-function parseJobData(data) {
-  let result = {};
-/** Defines jobData variable.
- * Defines how job data is displayed, makes sure if there are extra spaces that it can read and parse and display it correctly still.
- * trim() makes sure to trim/remove the whitespace before and after the input string.
- * split(/\r?\n/): Splits the string into an array of lines. It accounts for both Windows (\r\n) and Unix (\n) line endings.
- * .map(parseCSVLine): Applies the parseCSVLine function to each line, parsing it into an array of cells.
- * .filter((row) => row.length): Filters out any rows that are empty.
- * .map((row) => row.filter((cell) => cell !== "")): Removes empty cells from each row.
- * .filter((row) => row.length >= 9): Keeps only rows that have at least 9 cells.
- * .map(replaceUnderscoresInRow): Applies the replaceUnderscoresInRow function to each row. This replaces underscores with spaces or other characters for legibility.
- * result.tableHeaders = [...jobData[0]];: Assigns the first row of jobData (headers) to result.tableHeaders.
- * result.jobs = [...jobData.slice(1)];: Assigns all rows except the first (the actual job data) to result.jobs.
- */
-  const jobData = data
-    .trim()
-    .split(/\r?\n/)
-    .map(parseCSVLine)
-    .filter((row) => row.length)
-    .map((row) => row.filter((cell) => cell !== ""))
-    .filter((row) => row.length >= 9)
-    .map(replaceUnderscoresInRow);
 
-  result.tableHeaders = [...jobData[0]];
-  result.jobs = [...jobData.slice(1)];
 
-  return result;
+function parseJobData(values) {
+  const [headers = [], ...rows] = values;
+  const normalizedRows = rows
+    .filter((row) => row.some((cell) => cell && cell.trim() !== ""))
+    .map((row) => replaceUnderscoresInRow(headers.map((_, idx) => row[idx] ?? "")));
+
+  return {
+    tableHeaders: headers,
+    jobs: normalizedRows,
+  };
 }
 
 function createJobs(keys, jobData) {
@@ -264,18 +255,18 @@ function getSearchResults(itemsToSearch, searchTerm) {
   return result;
 }
 
-function parseCSVLine(line) {
-  if (!line.trim()) return []; // skip blank lines
-  return (
-    line.match(/("([^"]|"")*"|[^,]*)(?=,|$)/g)?.map((cell) => {
-      cell = cell.trim();
-      if (cell.startsWith('"') && cell.endsWith('"')) {
-        cell = cell.slice(1, -1).replace(/""/g, '"');
-      }
-      return cell;
-    }) || []
-  );
-}
+// function parseCSVLine(line) {
+//   if (!line.trim()) return []; // skip blank lines
+//   return (
+//     line.match(/("([^"]|"")*"|[^,]*)(?=,|$)/g)?.map((cell) => {
+//       cell = cell.trim();
+//       if (cell.startsWith('"') && cell.endsWith('"')) {
+//         cell = cell.slice(1, -1).replace(/""/g, '"');
+//       }
+//       return cell;
+//     }) || []
+//   );
+// }
 
 /**
  * Replaces all underscores in the column of a row array with spaces.
