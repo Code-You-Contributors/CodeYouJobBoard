@@ -2,6 +2,11 @@
 
 ## Update with instructions on how to run the project
 
+## What you'll need to install: mongoDb (https://www.mongodb.com/docs/manual/installation/?msockid=2b8a6db216a96eaa06867b9717846fe4), mongoose (https://www.npmjs.com/package/mongoose).
+## What the project is: This project is comprised of multiple components to create a live feed Code You Job Board that shows available jobs based on mongodb data. 
+
+## What the project does: Uses HTML, CSS and JS to make similarly styled pages with the JS serving as the function lever for the pages/job board functionality. mongoDB is used as the database with mongoose as the tool used to dive into it and procure the proper data to display to the job board. 
+
 ## ToDos
 
 - **Clean up:** some styles like border radius is not the same on whole project. 
