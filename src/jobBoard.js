@@ -312,9 +312,6 @@ function renderTable(tableItems) {
   tableBody.id = "jobTableBody";
 
   itemsToDisplay.forEach((item) => {
-
-    if (item.length < 9) return;
-
     const tr = document.createElement("tr");
 
     tableHeaders.forEach((header) => {
