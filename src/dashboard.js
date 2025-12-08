@@ -6,7 +6,7 @@
  */
 
 /**
- * A Job object parsed from the CSV. Properties are derived from the CSV headers.
+ * A Job object parsed from the JSON/mongoDB data. Properties are derived from the JSON/mongoDB headers.
  *
  *  - Date (string in MM/DD/YYYY)
  *  - Employer (string)
@@ -218,8 +218,8 @@ async function fetchJobData(url) {
 }
 
 /**
- * Parse job data from CSV text.
- * @param {string} data - The CSV text data.
+ * Parse job data from JSON/mongoDB text.
+ * @param {string} data - The JSON/mongoDB text data.
  * @returns {Object} - Parsed job data.
  * @property {Array<string>} tableHeaders - The table headers.
  * @property {Array<Array<string>>} jobs - The job rows.
@@ -1180,8 +1180,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
   
   /**
-   * Defines the URL for the Google Sheets CSV export.
-   * This is a public publish link to fetch raw data in CSV format.
+   * Defines the URL for the Google Sheets JSON/mongoDB export.
+   * This is a public publish link to fetch raw data in JSON/mongoDB format.
    * Used for initial load and potentially updates
    * Note: Ensure the sheet is publicly accessible; if permissions change, fetches will fail
    */
@@ -1226,7 +1226,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /**
    * Performs the initial load of data from the sheet URL and sets up the UI.
-   * - Calls initialLoad() asynchronously to fetch and process CSV data
+   * - Calls initialLoad() asynchronously to fetch and process JSON/mongoDB data
    * - Wrapped in try/finally to ensure the loading overlay is hidden regardless of success or failure
    */
   try {
