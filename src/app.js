@@ -81,7 +81,7 @@ app.get('/api/sheet', async (req, res) => {
     // Transform to match expected format (array of arrays, like Google Sheets)
     const headers = ['Date', 'Employer', 'Job Title', 'Pathway', 'Language', 'Salary Range', 'Contact Person', 'Location', 'Deactivate?', 'Apply'];
     const rows = jobs.map(job => [
-      job['Date'] ? job['Date'].toLocaleDateString('en-US') : '',
+      job['Date'] ? job['Date'].toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : '',
       job['Employer'] || '',
       job['Job Title'] || '',
       job['Pathway'] || '',
