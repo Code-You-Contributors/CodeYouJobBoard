@@ -45,10 +45,10 @@ let dashTotalPages = 0;
 
 // Table sorting state
 /** @type {string|null} */
-let dashSortColumn = null; // e.g., 'Date' or 'Job Title'
+let dashSortColumn = 'Date'; // Default sort by Date
 
 /** @type {'asc'|'desc'} */
-let dashSortDirection = 'asc';
+let dashSortDirection = 'desc'; // Default to descending so new jobs are at top
 
 // Percentage threshold below which labels will be hidden to avoid overlap
 /** @const {number} */
@@ -97,7 +97,7 @@ function getPaginationRange(current, total) {
   for (let i of range) {
     if (last) {
       if (i - last === 2) {
-         // If the gap is exactly one page, show that intervening page
+        // If the gap is exactly one page, show that intervening page
         rangeWithDots.push(last + 1);
       } else if (i - last > 2) {
         rangeWithDots.push("…");
@@ -210,11 +210,12 @@ function getShortLocationLabel(fullLabel) {
  * @returns {Promise<string>} - The fetched data as JSON.
  */
 async function fetchJobData(url) {
-  const response = await fetch(url);
+  const response = await fetch(url, { cache: 'no-cache' });
   if (!response.ok) throw new Error(`Failed to load jobs (${response.status})`);
-  const payload = await response.json();                     
+  console.log(response);
+  const payload = await response.json();
   if (!payload?.values?.length) throw new Error("Missing values array");
-  return payload.values;                                      
+  return payload.values;
 }
 
 /**
@@ -281,7 +282,7 @@ function createJobs(keys, jobData) {
 
   jobData.forEach((job, rowIndex) => {  // Added rowIndex for logging
     const parsedJob = {};
-    
+
     // Guard: some rows may be malformed; skip those
     if (job.length < keys.length) {
       console.warn(`Skipping malformed row ${rowIndex + 2}: Expected ${keys.length} columns, got ${job.length}`, job);  // +2 assumes header + 1-based
@@ -337,8 +338,8 @@ function createJobs(keys, jobData) {
  * Filters an array of job objects to return only the active ones.
  * - A job is considered active if its "Deactivate?" property is falsy
  * - This function uses Array.prototype.filter() to create a new array excluding deactivated jobs
- * 
- * @param {Array<Object>} allJobs - The array of job objects to filter. 
+ *
+ * @param {Array<Object>} allJobs - The array of job objects to filter.
  * @returns {Array<Object>} A new array containing only the active job objects.
  * @example
  * const jobs = [
@@ -351,14 +352,14 @@ function createJobs(keys, jobData) {
 function getActiveJobs(allJobs) {
   return allJobs.filter((job) => !job["Deactivate?"]);
 }
- 
+
 /**
  * Parse date in MM/DD/YYYY format to Date object.
  * @param {string} str - The date string.
  * @returns {Date|null} - The parsed Date object or null if invalid.
  */
 function parseDate(str) {
-  const regex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[0-1])\/(\d{4})$/;
+  const regex = /^(0?[1-9]|1[0-2])\/(0?[1-9]|[12][0-9]|3[0-1])\/(\d{4})$/;
   const match = str.match(regex);
   if (!match) return null;
 
@@ -371,7 +372,7 @@ function parseDate(str) {
  * Populate filter dropdowns based on allActiveJobs.
  */
 function populateFilters() {
- // Unique languages from allActiveJobs
+  // Unique languages from allActiveJobs
   const uniqueLangs = [...new Set(allActiveJobs.flatMap(job => job['Language'] || []))].sort();
   const langSelect = document.getElementById('languageSelect');
   langSelect.innerHTML = '';
@@ -537,7 +538,7 @@ function updateFromFilters() {
     return selectedLocations.length === 0 || selectedLocations.includes(jobLocation);
   });
 
-   // Update a small stats element with the count of filtered jobs
+  // Update a small stats element with the count of filtered jobs
   document.getElementById('jobCount').textContent = `Number of jobs: ${filteredJobs.length}`;
 
   // Re-render charts and table
@@ -565,7 +566,7 @@ function renderTable(jobs) {
   theadRow.innerHTML = '';
 
   // Use tableHeaders (array of header strings) to build thead if needed
-  const headers = tableHeaders && tableHeaders.length ? tableHeaders : ['Date','Employer','Job Title','Pathway','Language','Salary Range','Contact Person','Location','Apply'];
+  const headers = tableHeaders && tableHeaders.length ? tableHeaders : ['Date', 'Employer', 'Job Title', 'Pathway', 'Language', 'Salary Range', 'Contact Person', 'Location', 'Apply'];
   // (Header row is rebuilt later for the dashboard-specific columns)
 
   if (!jobs || jobs.length === 0) {
@@ -576,7 +577,7 @@ function renderTable(jobs) {
     // clear header and body
     theadRow.innerHTML = '';
     tableBody.innerHTML = '';
-  renderPaginationControls('dashboard-pagination', 0, 0, (p) => {});
+    renderPaginationControls('dashboard-pagination', 0, 0, (p) => { });
     return;
   }
 
@@ -586,7 +587,7 @@ function renderTable(jobs) {
   }
 
   // Columns to display on dashboard table
-  const columns = ['Job Title','Language','Salary Range','Location'];
+  const columns = ['Job Title', 'Language', 'Salary Range', 'Location'];
 
   // Build header row for these columns and attach sort handlers
   theadRow.innerHTML = '';
@@ -709,7 +710,7 @@ function sortJobs(a, b, column, direction) {
   // Default string compare
   const aStr = (typeof av === 'string') ? av : String(av);
   const bStr = (typeof bv === 'string') ? bv : String(bv);
-  return aStr.localeCompare(bStr, undefined, {numeric: true}) * dir;
+  return aStr.localeCompare(bStr, undefined, { numeric: true }) * dir;
 }
 
 /**
@@ -730,8 +731,8 @@ async function initialLoad(url) {
     // Add event listeners for filter changes
     document.getElementById('languageSelect').addEventListener('change', updateFromFilters);
     document.getElementById('locationSelect').addEventListener('change', updateFromFilters);
-  const salaryEl = document.getElementById('salarySelect');
-  if (salaryEl) salaryEl.addEventListener('change', updateFromFilters);
+    const salaryEl = document.getElementById('salarySelect');
+    if (salaryEl) salaryEl.addEventListener('change', updateFromFilters);
 
     // Clear filters button
     document.getElementById('clearFilters').addEventListener('click', clearAllFilters);
@@ -788,11 +789,11 @@ function renderCharts(jobs) {
       labels: pieData.map(d => d.label),
       datasets: [{
         data: pieData.map(d => d.value),
-        backgroundColor: ['#106396', '#e4185b', '#ecb41f', '#25b67b', '#9f2064', '#44174c', '#26a4b4', '#e06b26'], 
+        backgroundColor: ['#106396', '#e4185b', '#ecb41f', '#25b67b', '#9f2064', '#44174c', '#26a4b4', '#e06b26'],
         borderWidth: 0  // Removes white borders between slices
       }]
     },
-    options: { 
+    options: {
       responsive: true,
       // clicking a pie slice toggles the location filter
       onClick: (evt, activeElements) => {
@@ -811,8 +812,8 @@ function renderCharts(jobs) {
           right: pieSidePadding  // Balanced padding to fit labels without overflow
         }
       },
-      plugins: { 
-        legend: { 
+      plugins: {
+        legend: {
           display: false
         },
         // Disable datalabels for pie; we draw outside labels with the plugin
@@ -880,7 +881,7 @@ function renderCharts(jobs) {
         borderWidth: 0  // Removes white borders between segments
       }]
     },
-    options: { 
+    options: {
       responsive: true,
       // clicking a donut slice toggles the language filter
       onClick: (evt, activeElements) => {
@@ -899,7 +900,7 @@ function renderCharts(jobs) {
           right: sidePadding  // Balanced padding to fit outside labels
         }
       },
-      plugins: { 
+      plugins: {
         legend: { display: false },
         // Keep counts inside slices
         datalabels: {
@@ -981,7 +982,7 @@ function renderCharts(jobs) {
 
             // Draw language (black) above percent (grey)
             const label = chart.data.labels[i] || '';
-            const textAlign = (midAngle > Math.PI/2 && midAngle < 3*Math.PI/2) ? 'right' : 'left';
+            const textAlign = (midAngle > Math.PI / 2 && midAngle < 3 * Math.PI / 2) ? 'right' : 'left';
             const textX = ex + (textAlign === 'right' ? -6 : 6);
             ctx.textAlign = textAlign;
             ctx.textBaseline = 'bottom';
@@ -1033,7 +1034,7 @@ function renderCharts(jobs) {
         tooltip: {
           enabled: false, // Tooltips disabled
           callbacks: {
-            label: function(context) {
+            label: function (context) {
               return '$' + context.parsed.y.toLocaleString();
             }
           }
@@ -1049,12 +1050,12 @@ function renderCharts(jobs) {
             display: false
           },
           grid: {
-            color: 'rgba(0, 0, 0, 0.1)' 
+            color: 'rgba(0, 0, 0, 0.1)'
           },
           ticks: {
-            color: '#333', 
+            color: '#333',
             stepSize: 50000, // Increment by $50,000
-            callback: function(value) {
+            callback: function (value) {
               return '$' + value.toLocaleString();
             }
           }
@@ -1064,7 +1065,7 @@ function renderCharts(jobs) {
             display: false
           },
           grid: {
-            color: 'rgba(0, 0, 0, 0.1)' 
+            color: 'rgba(0, 0, 0, 0.1)'
           },
           ticks: {
             color: '#000000ff'
@@ -1072,7 +1073,7 @@ function renderCharts(jobs) {
         }
       },
       animation: {
-        onComplete: () => {}
+        onComplete: () => { }
       }
     },
     // Draw values on top of bars after datasets are rendered
@@ -1081,7 +1082,7 @@ function renderCharts(jobs) {
         const ctx = chart.ctx;
         ctx.save();
         ctx.font = "bold 14px var(--font-body)";
-        ctx.fillStyle = "#000"; 
+        ctx.fillStyle = "#000";
         ctx.textAlign = "center";
         ctx.textBaseline = "bottom";
 
@@ -1104,7 +1105,7 @@ function renderCharts(jobs) {
 
 /**
  * Initializes the dashboard once the DOM is fully loaded.
- * This ensures all elements (date pickers, buttons, and chart canvases) are available before 
+ * This ensures all elements (date pickers, buttons, and chart canvases) are available before
  * binding events or fetching data.
  * Key Steps:
  * 1. Registers Chart.js plugins for data labels and donut leader lines
@@ -1163,7 +1164,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // For pie charts use the short location label mapping, for donuts use the language label
         const rawLabel = chart.data.labels[i] || '';
         const label = (chart.config.type === 'pie') ? getShortLocationLabel(rawLabel) : rawLabel;
-        const textAlign = (midAngle > Math.PI/2 && midAngle < 3*Math.PI/2) ? 'right' : 'left';
+        const textAlign = (midAngle > Math.PI / 2 && midAngle < 3 * Math.PI / 2) ? 'right' : 'left';
         const textX = ex + (textAlign === 'right' ? -6 : 6);
         ctx.textAlign = textAlign;
         ctx.textBaseline = 'bottom';
@@ -1178,7 +1179,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
   });
-  
+
   /**
    * Defines the URL for the Google Sheets JSON/mongoDB export.
    * This is a public publish link to fetch raw data in JSON/mongoDB format.
@@ -1186,7 +1187,7 @@ document.addEventListener("DOMContentLoaded", async () => {
    * Note: Ensure the sheet is publicly accessible; if permissions change, fetches will fail
    */
   // const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjCxhcf73XCjoHZM2NtJ5WCrVEj2gGvH5QrnHnpsuSe1tcP_rfg8CFXbiOnQ64s1gOksAE6QFYknGR/pub?output=csv";
-   const sheetUrl = "/api/sheet";
+  const sheetUrl = "/api/sheet";
   /**
    * Retrieves DOM elements for date inputs, update button, and loading overlay.
    * - startDateInput: Input for the start date of the data range

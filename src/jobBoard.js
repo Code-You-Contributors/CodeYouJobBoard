@@ -8,7 +8,7 @@ let currentPage = 1;
 document.addEventListener("DOMContentLoaded", async () => {
   // const sheetUrl =
   //   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjCxhcf73XCjoHZM2NtJ5WCrVEj2gGvH5QrnHnpsuSe1tcP_rfg8CFXbiOnQ64s1gOksAE6QFYknGR/pub?output=csv";
-   const sheetUrl = "/api/sheet";
+  const sheetUrl = "/api/sheet";
   const searchInput = document.getElementById("searchInput");
   searchInput.addEventListener("input", () => {
     refreshView(activeJobs);
@@ -124,7 +124,7 @@ function getActiveJobs(allJobs) {
 }
 
 function parseDate(str) {
-  const regex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/(\d{4})$/;
+  const regex = /^(0?[1-9]|1[0-2])\/(0?[1-9]|[12][0-9]|3[0-1])\/(\d{4})$/;
   const match = str.match(regex);
   if (!match) return null;
 
@@ -320,8 +320,9 @@ function renderTable(tableItems) {
       const td = document.createElement("td");
       td.textContent = item[header];
 
-      if (lowerHeader.includes("date"))
-        td.textContent = item[header].toLocaleString().split(",")[0];
+      if (lowerHeader.includes("date")) {
+        td.textContent = item[header] ? item[header].toLocaleString().split(",")[0] : "N/A";
+      }
 
       if (lowerHeader.includes("salary")) {
         const min = item[header].min;
@@ -330,9 +331,8 @@ function renderTable(tableItems) {
         if (!min) {
           td.textContent = "Not Provided";
         } else {
-          td.textContent = `${formatDollar(min)}${
-            max ? ` - ${formatDollar(max)}` : ""
-          }`;
+          td.textContent = `${formatDollar(min)}${max ? ` - ${formatDollar(max)}` : ""
+            }`;
         }
       }
 
