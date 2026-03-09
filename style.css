@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Variables
+   Root Variables (Colors, Fonts)
    ========================================================================== */
 :root {
   /* Primary Colors */
@@ -57,6 +57,40 @@ body {
 }
 
 /* ==========================================================================
+   Typography (h1, h2, h3, p)
+   ========================================================================== */
+h1, h2, h3 {
+  font-family: var(--font-alt-headline);
+  margin: 0 0 10px 0;
+}
+
+p {
+  line-height: 1.5;
+  margin: 0 0 1rem 0;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+section h2 {
+  font-size: 1.5em;
+  margin-bottom: 15px;
+  margin-top: 0;
+  color: var(--b-blue);
+}
+
+h3.chart-title {
+  padding: 0;
+  margin-bottom: 10px;
+  margin-top: 0;
+  text-align: left;
+  color: var(--bg-2);
+}
+
+/* ==========================================================================
    Layout
    ========================================================================== */
 .container {
@@ -73,43 +107,11 @@ body {
   margin-bottom: 30px;
 }
 
-.header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  font-family: var(--font-alt-headline);
-}
-
-aside {
-  background-color: var(--bg-5);
-  color: var(--white);
-  color: var(--buckcherry);
-  font-family: var(--font-alt-headline);
-  padding: 40px 20px;
-  width: 200px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-right: 20px;
-}
-
-aside h1 {
-  font-family: var(--font-alt-headline);
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-aside p {
-  font-size: 1em;
-  line-height: 1.5;
-}
-
 .content {
   flex: 1;
   padding: 40px 30px;
   background-color: var(--bg-1);
-  color: var(--buckcherry);
+  color: var(--black-cherry);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -123,14 +125,6 @@ section {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-section h2 {
-  font-family: var(--font-alt-headline);
-  font-size: 1.5em;
-  margin-bottom: 15px;
-  margin-top: 0;
-  color: var(--b-blue);
-}
-
 footer {
   text-align: center;
   padding: 20px;
@@ -140,28 +134,43 @@ footer {
 }
 
 /* ==========================================================================
-   Components
+   Navigation (aside, links, hamburger, logos)
    ========================================================================== */
-
-/* --- Logo --- */
-.logo {
-  width: 70%;
-  height: auto;
-  margin-bottom: 80px;
-  align-self: center;
+aside {
+  background-color: var(--bg-5);
+  color: var(--black-cherry);
+  font-family: var(--font-alt-headline);
+  padding: 40px 20px;
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 20px;
 }
 
-.logo-horizontal {
-  display: none;
+aside h1 {
+  font-size: 24px;
+  margin-bottom: 10px;
 }
 
-/* --- Navigation --- */
+aside p {
+  font-size: 1em;
+}
+
+aside nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-basis: 75%;
+}
+
 aside a {
   display: flex;
   align-items: center;
   font-family: var(--font-alt-headline);
   text-decoration: none;
-  color: var(--blue);
+  color: var(--b-blue);
   gap: 10px;
   margin-bottom: 10px;
   font-weight: bold;
@@ -189,7 +198,162 @@ aside a {
   pointer-events: none;
 }
 
-/* --- General / Images --- */
+/* Logos */
+.logo {
+  width: 70%;
+  height: auto;
+  margin-bottom: 80px;
+  align-self: center;
+}
+
+.logo-horizontal {
+  display: none;
+}
+
+/* ==========================================================================
+   Tables (table-container, job-table, table-related controls)
+   ========================================================================== */
+.table-container {
+  background: var(--white);
+  width: 100%;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+}
+
+.job-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  color: var(--white);
+}
+
+.job-table th {
+  background: var(--b-blue);
+  color: var(--white);
+  padding: 15px 12px;
+  text-align: center;
+  font-weight: 600;
+  border: none;
+  position: sticky;
+  top: 0;
+}
+
+.job-table th:first-child {
+  border-radius: 15px 0 0 0;
+}
+
+.job-table th:last-child {
+  border-radius: 0 15px 0 0;
+}
+
+.job-table .sortable-header {
+  cursor: pointer;
+}
+
+.job-table th .sort-indicator {
+  margin-left: 8px;
+  font-size: 0.85em;
+  opacity: 0.9;
+}
+
+.job-table td {
+  padding: 15px 12px;
+  border-bottom: 1px solid var(--bg-2);
+  vertical-align: middle;
+}
+
+.job-table tr {
+  transition: all 0.3s ease;
+  background: var(--black-cherry);
+}
+
+.job-table tbody tr:hover {
+  background: linear-gradient(135deg, var(--bg-2), var(--bg-3));
+  color: var(--white);
+  transform: scale(1.01);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.job-table tr:last-child td {
+  border-bottom: none;
+}
+
+.job-data-status {
+  color: var(--b-purple);
+  font-size: 2rem;
+  height: 50vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+td a {
+  font-weight: bold;
+  color: var(--white);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+td a:visited {
+  color: var(--b-yellow);
+}
+
+/* Pagination (grouped with tables) */
+.table-container .pagination-controls {
+  background-color: var(--b-blue);
+  color: var(--white);
+  height: 50px;
+  width: 100%;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.pagination-controls button {
+  background-color: var(--black-cherry);
+  color: var(--white);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.pagination-controls button:hover {
+  background-color: var(--b-magenta);
+  color: var(--white);
+  border-color: #007bff;
+}
+
+.pagination-controls button.active {
+  background-color: var(--b-blue);
+  color: var(--white);
+  border-color: var(--b-blue);
+  font-weight: bold;
+}
+
+.pagination-controls button:disabled {
+  background-color: var(--white);
+  color: var(--bg-2);
+}
+
+.pagination-controls#dashboard-pagination {
+  background-color: var(--b-blue);
+}
+
+/* ==========================================================================
+   Components (Images, How-To, Stats, Filters, Job items, Links, Cards, Charts, Loaders)
+   ========================================================================== */
+
+/* Images */
 .section-img {
   width: 100%;
   max-height: 200px;
@@ -198,7 +362,7 @@ aside a {
   border-radius: 8px;
 }
 
-/* --- How To --- */
+/* How To */
 .how-to {
   display: flex;
   flex-direction: row;
@@ -210,7 +374,7 @@ aside a {
   list-style-type: disc;
 }
 
-/* --- Stats --- */
+/* Stats */
 .stats {
   display: flex;
   justify-content: center;
@@ -228,7 +392,7 @@ aside a {
   flex-grow: 1;
 }
 
-/* --- Search & Filters --- */
+/* Search & Filters */
 .search-bar {
   width: 100%;
   padding: 15px 20px;
@@ -259,7 +423,7 @@ aside a {
 
 .filter-group label {
   margin-bottom: 5px;
-  font-weight: 600px;
+  font-weight: 600;
   color: var(--bg-5);
 }
 
@@ -344,97 +508,7 @@ aside a {
   font-size: 1rem;
 }
 
-/* --- Job Table --- */
-.table-container {
-  background: var(--white);
-  width: 100%;
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  overflow-x: auto;
-}
-
-.job-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-  color: white;
-}
-
-.job-table th {
-  background: var(--b-blue);
-  color: var(--white);
-  padding: 15px 12px;
-  text-align: center;
-  font-weight: 600;
-  border: none;
-  position: sticky;
-  top: 0;
-}
-
-.job-table th:first-child {
-  border-radius: 15px 0 0 0;
-}
-
-.job-table th:last-child {
-  border-radius: 0 15px 0 0;
-}
-
-.job-table .sortable-header {
-  cursor: pointer;
-}
-
-.job-table th .sort-indicator {
-  margin-left: 8px;
-  font-size: 0.85em;
-  opacity: 0.9;
-}
-
-.job-table td {
-  padding: 15px 12px;
-  border-bottom: 1px solid var(--bg-2);
-  vertical-align: middle;
-}
-
-.job-table tr {
-  transition: all 0.3s ease;
-  background: var(--black-cherry);
-}
-
-.job-table tbody tr:hover {
-  background: linear-gradient(135deg, var(--bg-2), var(--bg-3));
-  color: var(--white);
-  transform: scale(1.01);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.job-table tr:last-child td {
-  border-bottom: none;
-}
-
-.job-data-status {
-  color: var(--b-purple);
-  font-size: 2rem;
-  height: 50vh;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-td a {
-  font-weight: bold;
-  color: white;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-td a:visited {
-  color: var(--b-yellow);
-}
-
-/* --- Job Items (Tags, Skills, Buttons) --- */
+/* Job Items (Tags, Skills, Buttons) */
 .job-count {
   font-weight: 600;
   font-size: 1.3rem;
@@ -464,7 +538,7 @@ td a:visited {
   padding: 5px 10px;
   border-radius: 20px;
   font-size: 0.8rem;
-  font-weight: 600p;
+  font-weight: 600;
   text-align: center;
   min-width: 80px;
 }
@@ -539,61 +613,14 @@ td a:visited {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* --- Pagination --- */
-.table-container .pagination-controls {
-  background-color: var(--b-blue);
-  color: var(--white);
-  height: 50px;
-  width: 100%;
-}
-
-.pagination-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
-  gap: 10px;
-}
-
-.pagination-controls button {
-  background-color: var(--black-cherry);
-  color: var(--white);
-  border-radius: 6px;
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
-
-.pagination-controls button:hover {
-  background-color: var(--b-magenta);
-  color: var(--white);
-  border-color: #007bff;
-}
-
-.pagination-controls button.active {
-  background-color: var(--b-blue);
-  color: var(--white);
-  border-color: var(--b-blue);
-  font-weight: bold;
-}
-
-.pagination-controls button:disabled {
-  background-color: var(--white);
-  color: var(--bg-2);
-}
-
-.pagination-controls#dashboard-pagination {
-  background-color: var(--b-blue);
-}
-
-/* --- Helpful Links --- */
+/* Helpful Links */
 .helpful-links-top {
   margin-top: 25px;
   padding-top: 20px;
   border-top: 2px solid var(--bg-2);
 }
 
-.helpful-Links-top h3 {
+.helpful-links-top h3 {
   font-size: 1.1rem;
   color: var(--b-blue);
   margin-bottom: 15px;
@@ -604,6 +631,7 @@ td a:visited {
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
+  padding: 0;
 }
 
 .helpful-links-top a {
@@ -616,7 +644,6 @@ td a:visited {
   border: 2px solid var(--b-blue);
   display: inline-block;
   font-size: 0.9rem;
-  font-weight: 500;
   width: 100%;
   text-align: center;
 }
@@ -628,7 +655,7 @@ td a:visited {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* --- Staff Cards --- */
+/* Staff Cards */
 .staff-cards {
   background-color: var(--bg-5);
   display: flex;
@@ -639,7 +666,6 @@ td a:visited {
 
 .staff-content {
   flex: 1 1 calc(33.333% - 20px);
-  text-align: center;
   padding: 20px;
   border-radius: 15px;
   text-align: center;
@@ -658,7 +684,7 @@ td a:visited {
   border: 4px solid var(--b-blue);
 }
 
-/* --- Charts --- */
+/* Charts */
 .charts-row {
   display: flex;
   min-height: 400px;
@@ -683,20 +709,11 @@ td a:visited {
 }
 
 .chart-item canvas {
-  /* Ensure charts fit container */
   width: 100% !important;
   height: auto !important;
 }
 
-h3.chart-title {
-  padding: 0;
-  margin-bottom: 10px;
-  margin-top: 0;
-  text-align: left;
-  color: var(--bg-2);
-}
-
-/* --- Loaders --- */
+/* Loaders */
 .loading-overlay {
   position: fixed;
   inset: 0;
@@ -812,13 +829,6 @@ h3.chart-title {
     max-height: 40px;
   }
 
-  aside nav {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    flex-basis: 75%;
-  }
-
   aside nav a {
     margin-bottom: 0;
     font-size: 1.25rem;
@@ -855,10 +865,6 @@ h3.chart-title {
 
   .logo-horizontal {
     display: none;
-  }
-
-  .helpful-links-top ul {
-    padding: 0;
   }
 
   .helpful-links-top ul li {
@@ -907,16 +913,12 @@ h3.chart-title {
 
   .charts-row {
     flex-direction: column;
-    /* Stack vertically on tablet/mobile */
     gap: 0.75rem;
-    /* Slightly tighter gap on small screens */
   }
 
   .chart-item {
     height: 200px;
-    /* Slightly shorter on mobile for thumb scroll */
     min-width: auto;
-    /* Full width on stack */
   }
 }
 
