@@ -6,8 +6,7 @@ let totalPages = 0;
 let currentPage = 1;
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // const sheetUrl =
-  //   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjCxhcf73XCjoHZM2NtJ5WCrVEj2gGvH5QrnHnpsuSe1tcP_rfg8CFXbiOnQ64s1gOksAE6QFYknGR/pub?output=csv";
+
   const sheetUrl = "/api/sheet";
   const searchInput = document.getElementById("searchInput");
   searchInput.addEventListener("input", () => {
@@ -28,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const csvText = await fetchJobData(sheetUrl);
     const jobData = parseJobData(csvText);
     const allJobs = createJobs(jobData.tableHeaders, jobData.jobs);
-    activeJobs = getActiveJobs(allJobs);
+    activeJobs = allJobs;
 
     tableHeaders = jobData.tableHeaders;
     refreshView(activeJobs);
@@ -120,7 +119,9 @@ function createJobs(keys, jobData) {
 }
 
 function getActiveJobs(allJobs) {
-  return allJobs.filter((job) => !job["Deactivate?"]);
+  const activeJobs = allJobs.filter((job) => !job["Deactivate?"]);
+  // console.log(`Filtered active jobs: ${activeJobs.length} out of ${allJobs.length}`);
+  return activeJobs;
 }
 
 function parseDate(str) {

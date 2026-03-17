@@ -75,7 +75,11 @@ app.get('/', (req, res) => {
 app.get('/api/sheet', async (req, res) => {
   try {
 
-    const jobs = await Job.find().lean();
+    
+    const jobs = await Job.find({ 'Deactivate?': false })
+      .sort({ Date: -1 })
+      .lean();
+
 
 
     // Transform to match expected format (array of arrays, like Google Sheets)
